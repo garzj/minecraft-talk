@@ -8,13 +8,8 @@ import io.socket.engineio.client.transports.WebSocket;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.bukkit.event.player.*;
 import tech.garz.minecrafttalk.MinecraftTalk;
-import tech.garz.minecrafttalk.Util;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -81,7 +76,7 @@ public class MinecraftTalkAPI implements Listener {
             return;
         }
 
-        socket.emit("login", Util.getPlayerId(player), (Ack) args -> {
+        socket.emit("login", player.getUniqueId().toString(), (Ack) args -> {
             String link = (String)args[0];
             loginCallback.run(link);
         });
@@ -93,7 +88,7 @@ public class MinecraftTalkAPI implements Listener {
             return;
         }
 
-        socket.emit("logout", Util.getPlayerId(player), (Ack) args -> {
+        socket.emit("logout", player.getUniqueId().toString(), (Ack) args -> {
             boolean success = (boolean)args[0];
             logoutCallback.run(success);
         });
