@@ -1,0 +1,12 @@
+name: MinecraftTalk
+version: ${project.version}
+main: tech.garz.minecrafttalk.MinecraftTalk
+api-version: 1.16
+authors: [ garzj ]
+description: A minecraft plugin allowing players to talk inside the game.
+website: https://www.garz.tech/
+commands:
+  vc:
+    aliases: [voicechat]
+    description: Allows players to join the voice chat over a website.
+    usage: §c/vc [login|logout] [<player>]
