@@ -1,5 +1,6 @@
 package tech.garz.minecrafttalk.commands;
 
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -24,7 +25,11 @@ public class VCCommand implements CommandExecutor {
                     // Style message
                     BaseComponent[] msg = new ComponentBuilder("Click here")
                             .event(new ClickEvent(ClickEvent.Action.OPEN_URL, link))
+                            .color(ChatColor.DARK_AQUA)
+                            .underlined(true)
                             .append(" to login as ")
+                            .color(ChatColor.RESET)
+                            .underlined(false)
                             .append(player.getName())
                             .append(".")
                             .create();
