@@ -1,5 +1,7 @@
 import { Socket } from 'socket.io';
 
-const ClientAPI = (socket: Socket) => {};
+class ClientAPI {
+  constructor(socket: Socket) {}
+}
 
 export default ClientAPI;

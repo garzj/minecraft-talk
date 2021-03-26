@@ -18,11 +18,11 @@ serverNsp.use((socket, next) => {
   }
 });
 
-serverNsp.on('connection', ServerAPI);
+serverNsp.on('connection', (socket) => new ServerAPI(socket));
 
 // Web App API
 
 const clientNsp = io.of('/client-api');
 export { clientNsp };
 
-clientNsp.on('connection', ClientAPI);
+clientNsp.on('connection', (socket) => new ClientAPI(socket));
