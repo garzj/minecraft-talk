@@ -2,7 +2,7 @@
   "name": "minecraft-talk-backend",
   "scripts": {
     "build": "tsc",
-    "start": "node ./build/server.js",
+    "start": "node ./build/app.js",
     "dev": "export NODE_ENV=development || set NODE_ENV=development&& nodemon"
   },
   "private": true,
