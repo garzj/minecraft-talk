@@ -24,3 +24,6 @@ yarn-error.log*
 
 # That's ok for the single pkg
 /package-lock.json
+
+# Other
+*.ignore*
