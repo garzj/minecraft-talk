@@ -1,0 +1,15 @@
+{
+  "name": "minecraft-talk",
+  "version": "0.0.1",
+  "description": "This file just manages two parts of the MinecraftTalk project: webapp, backend",
+  "author": "Johannes Garz <jojogarz123@gmail.com> (https://www.garz.tech/)",
+  "private": true,
+  "scripts": {
+    "install-all": "npm i && cd webapp && npm i && cd ../backend && npm i",
+    "deploy": "cd webapp && npm run build && cd ../backend && npm run build && npm start",
+    "dev": "concurrently \"cd webapp && npm run dev\" \"cd backend && npm start\""
+  },
+  "devDependencies": {
+    "concurrently": "^6.0.0"
+  }
+}
