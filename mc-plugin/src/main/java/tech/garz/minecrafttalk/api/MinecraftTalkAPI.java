@@ -63,7 +63,12 @@ public class MinecraftTalkAPI implements Listener {
         pl.getLogger().info("Connecting to the voice chat server...");
         socket.on(Socket.EVENT_CONNECT, args -> pl.getLogger().info("Connection established!"));
         socket.on("error", args -> pl.getLogger().info("Socket error " + Arrays.toString(args)));
-        socket.on(Socket.EVENT_CONNECT_ERROR, args -> pl.getLogger().info("Socket connection error " + Arrays.toString(args)));
+        socket.on(Socket.EVENT_CONNECT_ERROR, args -> {
+            pl.getLogger().info("Socket connection error " + Arrays.toString(args));
+
+            // Clear talking players
+            lastNeighborCount.clear();
+        });
 
         socket.connect();
 
