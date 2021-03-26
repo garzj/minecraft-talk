@@ -57,7 +57,7 @@ public class MinecraftTalkAPI implements Listener {
 
         // Socket setup
         socketManager = new Manager(socketURI);
-        socket = socketManager.socket("/server", opt);
+        socket = socketManager.socket("/server-api", opt);
 
         // Debug
         pl.getLogger().info("Connecting to the voice chat server...");
