@@ -24,7 +24,7 @@ public class MinecraftTalkAPI implements Listener {
     private Manager socketManager;
     private Socket socket;
 
-    private HashMap<Player, Integer> lastNeighborCount = new HashMap<>();
+    private Map<Player, Integer> lastNeighborCount = new HashMap<>();
 
     public MinecraftTalkAPI() {
         MinecraftTalk.getInstance().getServer().getPluginManager().registerEvents(this, MinecraftTalk.getInstance());
@@ -125,7 +125,7 @@ public class MinecraftTalkAPI implements Listener {
         if (!lastNeighborCount.containsKey(player)) return;
 
         // Calc all volumes to player neighbors
-        ArrayList<JSONArray> volumes = new ArrayList<>();
+        List<JSONArray> volumes = new ArrayList<>();
 
         for (Entity entity : player.getNearbyEntities(MAX_TALK_DISTANCE, MAX_TALK_DISTANCE, MAX_TALK_DISTANCE)) {
             if (entity instanceof Player) {
