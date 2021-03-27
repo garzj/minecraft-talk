@@ -7,7 +7,7 @@
   "scripts": {
     "install-all": "npm i && cd webapp && npm i && cd ../backend && npm i",
     "deploy": "cd webapp && npm run build && cd ../backend && npm run build && npm start",
-    "dev": "concurrently \"cd webapp && npm run dev\" \"cd backend && npm start\""
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd webapp && npm start\""
   },
   "devDependencies": {
     "concurrently": "^6.0.0"
