@@ -9,7 +9,7 @@
     "typeRoots": ["node_modules/@types"],
     "resolveJsonModule": true,
     "noImplicitAny": true,
-    "strictPropertyInitialization": true
+    "strict": true
   },
   "exclude": ["./node_modules", "./build"],
   "include": ["./src"]
