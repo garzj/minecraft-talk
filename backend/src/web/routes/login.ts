@@ -4,10 +4,12 @@ import { Router } from 'express';
 export const loginRouter = Router();
 
 loginRouter.get('/login', (req, res) => {
-  const unsignedToken = signedCookie(
-    req.params.token,
-    process.env.TOKEN_SECRET
-  );
+  if (typeof req.query.token !== 'string') {
+    // There's no token
+    return res.redirect('/expired');
+  }
+
+  const unsignedToken = signedCookie(req.query.token, process.env.TOKEN_SECRET);
   if (!unsignedToken) {
     // The user modified the token
     return res.redirect('/expired');
