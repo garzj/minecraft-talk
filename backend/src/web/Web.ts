@@ -1,16 +1,19 @@
 import { middleware } from './middleware';
-import * as express from 'express';
 import { APIManager } from '../api/APIManager';
+import { Application } from 'express';
+import { routes } from './routes';
 
 export class Web {
-  app: express.Application;
+  app: Application;
   apiMgr: APIManager;
 
-  constructor(app: express.Application, apiMgr: APIManager) {
+  constructor(app: Application, apiMgr: APIManager) {
     this.app = app;
     this.apiMgr = apiMgr;
 
     middleware(this.app);
+
+    routes(this);
   }
 
   start() {
