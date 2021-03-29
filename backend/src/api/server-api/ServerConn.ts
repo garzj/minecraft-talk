@@ -2,7 +2,7 @@ import { Socket } from 'socket.io';
 import { signObj } from '../../bin/sign-obj';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
-import { ClientConn } from '../client-api/ClientConn';
+import { ClientAPI } from '../client-api/ClientAPI';
 
 export class ServerConn extends APIConn {
   constructor(mgr: APIManager, socket: Socket) {
@@ -25,17 +25,7 @@ export class ServerConn extends APIConn {
     });
 
     socket.on('logout', (uuid, ack: (success: boolean) => void) => {
-      // I could also invalidate the token somehow...
-      // But I'm just gonna emit a logout to the connected
-      // clients and let all other tokens expire
-
-      this.mgr.apis.client.conns.forEach((apiConn) => {
-        if ((apiConn as ClientConn).uuid === uuid) {
-          apiConn.socket.emit('logout');
-        }
-      });
-
-      ack(true);
+      ack((this.mgr.apis.client as ClientAPI).logoutUser(uuid));
     });
 
     socket.on('update-vols', (uuid, vols: [[string, number]]) => {
