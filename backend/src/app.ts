@@ -11,6 +11,6 @@ import { APIManager } from './api/APIManager';
 const apiMgr = new APIManager(server);
 
 import { Web } from './web/Web';
-const web = new Web(app, apiMgr);
+const web = new Web(server, app, apiMgr);
 
 web.start();
