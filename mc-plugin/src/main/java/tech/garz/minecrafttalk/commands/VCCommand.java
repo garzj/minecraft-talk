@@ -44,7 +44,7 @@ public class VCCommand implements CommandExecutor {
     void logout(Player player, CommandSender sender) {
         MinecraftTalk.getAPI().logout(player, success -> {
             if (success) {
-                sender.sendMessage("Logout successful!");
+                sender.sendMessage("Logged out successfully.");
             } else {
                 sender.sendMessage("§cLogout failed. Please contact us server admins!");
             }
