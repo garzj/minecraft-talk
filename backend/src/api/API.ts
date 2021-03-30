@@ -13,7 +13,13 @@ export abstract class API {
     this.nsp = this.mgr.io.of('/api/' + apiName);
 
     this.nsp.on('connection', (socket) => {
-      this.conns.push(new APIConnClass(this.mgr, socket));
+      const conn = new APIConnClass(this.mgr, socket);
+      this.conns.push(conn);
+
+      socket.on('disconnect', () => {
+        this.conns = this.conns.filter((c) => c !== conn);
+        socket.offAny();
+      });
     });
   }
 }
