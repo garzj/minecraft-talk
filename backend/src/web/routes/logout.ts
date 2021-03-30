@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { ClientAPI } from '../../api/client-api/ClientAPI';
+import { validateToken } from '../../bin/validate-token';
 import { Web } from '../Web';
 
 export function logoutRouter(web: Web) {
@@ -7,7 +8,7 @@ export function logoutRouter(web: Web) {
 
   logoutRouter.get('/logout', (req, res, next) => {
     const token = req.signedCookies.token;
-    if (token && typeof token.uuid === 'string') {
+    if (validateToken(token)) {
       (web.apiMgr.apis.client as ClientAPI).logoutUser(token.uuid);
     }
 

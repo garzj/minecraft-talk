@@ -1,4 +1,5 @@
 import * as express from 'express';
+import { validateToken } from '../../bin/validate-token';
 import {
   buildDir,
   buildDirExists,
@@ -7,6 +8,15 @@ import {
 } from '../../config/paths';
 
 export const webAppRouter = express.Router();
+
+// Auth
+webAppRouter.get('/', (req, res, next) => {
+  if (!validateToken(req.signedCookies.token)) {
+    return res.redirect('/expired');
+  }
+
+  next();
+});
 
 if (buildDirExists) {
   webAppRouter.use(express.static(buildDir));
