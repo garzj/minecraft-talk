@@ -18,7 +18,7 @@ export class ClientConn extends APIConn {
     if (validateToken(signedCookies.token)) {
       this.uuid = signedCookies.token.uuid;
 
-      socket.emit('logged-in');
+      socket.emit('logged-in', this.uuid);
 
       this.loggedIn();
     } else {
