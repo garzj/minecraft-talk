@@ -4,6 +4,7 @@ import { APIManager } from '../APIManager';
 import { ClientAPI } from './ClientAPI';
 import * as cookieParser from 'cookie-parser';
 import { validateToken } from '../../bin/validate-token';
+
 export class ClientConn extends APIConn {
   uuid!: string;
 

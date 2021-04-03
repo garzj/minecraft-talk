@@ -13,8 +13,8 @@ export class ServerConn extends APIConn {
       tomorrow.setDate(tomorrow.getDate() + 1);
 
       const token = signObj({
-        createdAt: new Date().toString(),
-        expiresAt: tomorrow.toString(),
+        createdAt: new Date().getTime(),
+        expiredAt: tomorrow.getTime(),
         uuid,
       });
 
