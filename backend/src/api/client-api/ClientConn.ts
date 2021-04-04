@@ -1,43 +1,65 @@
+import * as Joi from 'joi';
 import { Socket } from 'socket.io';
+import { Token } from '../../bin/Token';
+import { validateToken } from '../../bin/validate-token';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
-import { ClientAPI } from './ClientAPI';
-import * as cookieParser from 'cookie-parser';
-import { validateToken } from '../../bin/validate-token';
+import { clientAPIAuthenticator } from './authenticator';
 
 export class ClientConn extends APIConn {
-  uuid!: string;
+  token: Token | null;
 
   constructor(mgr: APIManager, socket: Socket) {
     super(mgr, socket);
 
-    // Auth
-    const req: any = socket.request;
-    cookieParser(process.env.TOKEN_SECRET)(req, {} as any, () => {});
-    const signedCookies: { [name: string]: any } = req.signedCookies;
+    this.token = clientAPIAuthenticator(this.socket);
+    this.auth();
 
-    if (validateToken(signedCookies.token)) {
-      this.uuid = signedCookies.token.uuid;
+    this.api();
+  }
 
-      socket.emit('logged-in', this.uuid);
+  api() {
+    // Validation errors
+    let message: string;
+    this.socket.use((e, next) => {
+      message = e[0];
+    });
+    const vErr = (error: Joi.ValidationError) => {
+      this.socket.emit('validation-error', message, error);
+    };
 
-      this.loggedIn();
-    } else {
-      socket.emit('token-expired');
+    // API
+    this.socket.on('get-uuid', (ackP: any) => {
+      const { value: ack, error } = Joi.function().validate(ackP);
+      if (error) return vErr(error);
 
-      socket.disconnect();
-    }
+      ack(this.token!.uuid);
+    });
+
+    this.socket.on('logout', () => {
+      this.mgr.clientApi.logoutUser(this.token!.uuid);
+    });
   }
 
   logout() {
     this.socket.emit('logout');
-
-    this.socket.disconnect();
+    this.unauth();
   }
 
-  loggedIn() {
-    this.socket.on('logout', () => {
-      (this.mgr.apis.client as ClientAPI).logoutUser(this.uuid);
+  auth() {
+    this.socket.use((e, next) => {
+      this.token = validateToken(this.token);
+      if (this.token) {
+        next();
+      } else {
+        this.socket.emit('token-expired');
+        this.unauth();
+      }
     });
+  }
+
+  unauth() {
+    this.token = null;
+    this.socket.offAny();
   }
 }

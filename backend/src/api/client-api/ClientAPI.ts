@@ -10,7 +10,7 @@ export class ClientAPI extends API {
   logoutUser(uuid: string): boolean {
     this.conns.forEach((apiConn) => {
       const clientConn = apiConn as ClientConn;
-      if (clientConn.uuid === uuid) {
+      if (clientConn.token?.uuid === uuid) {
         clientConn.logout();
       }
     });

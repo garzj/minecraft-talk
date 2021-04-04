@@ -2,33 +2,39 @@ import { Socket } from 'socket.io';
 import { signObj } from '../../bin/sign-obj';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
-import { ClientAPI } from '../client-api/ClientAPI';
+import { Token } from '../../bin/Token';
 
 export class ServerConn extends APIConn {
   constructor(mgr: APIManager, socket: Socket) {
     super(mgr, socket);
 
-    socket.on('login', (uuid: string, ack: (link: string) => void) => {
+    this.api();
+  }
+
+  api() {
+    this.socket.on('login', (uuid: string, ack: (link: string) => void) => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const token = signObj({
+      const token: Token = {
         createdAt: new Date().getTime(),
         expiredAt: tomorrow.getTime(),
         uuid,
-      });
+      };
 
-      const encodedToken = encodeURIComponent(token);
+      const signedToken = signObj(token);
+
+      const encodedToken = encodeURIComponent(signedToken);
       const link = `${process.env.ORIGIN}login/?token=${encodedToken}`;
 
       ack(link);
     });
 
-    socket.on('logout', (uuid, ack: (success: boolean) => void) => {
-      ack((this.mgr.apis.client as ClientAPI).logoutUser(uuid));
+    this.socket.on('logout', (uuid, ack: (success: boolean) => void) => {
+      ack(this.mgr.clientApi.logoutUser(uuid));
     });
 
-    socket.on('update-vols', (uuid, vols: [[string, number]]) => {
+    this.socket.on('update-vols', (uuid, vols: [[string, number]]) => {
       // TODO: Implement me
     });
   }
