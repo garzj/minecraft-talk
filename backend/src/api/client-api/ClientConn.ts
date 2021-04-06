@@ -23,6 +23,7 @@ export class ClientConn extends APIConn {
     let message: string;
     this.socket.use((e, next) => {
       message = e[0];
+      next();
     });
     const vErr = (error: Joi.ValidationError) => {
       this.socket.emit('validation-error', message, error);
