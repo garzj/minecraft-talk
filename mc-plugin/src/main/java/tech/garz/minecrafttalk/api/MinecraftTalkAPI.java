@@ -102,7 +102,7 @@ public class MinecraftTalkAPI implements Listener {
             return;
         }
 
-        socket.emit("login", player.getUniqueId().toString(), (Ack) args -> {
+        socket.emit("login", player.getUniqueId().toString(), player.getName(), (Ack) args -> {
             String link = (String) args[0];
             loginCallback.run(link);
         });

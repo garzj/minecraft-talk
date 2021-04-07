@@ -12,23 +12,27 @@ export class ServerConn extends APIConn {
   }
 
   api() {
-    this.socket.on('login', (uuid: string, ack: (link: string) => void) => {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
+    this.socket.on(
+      'login',
+      (uuid: string, name: string, ack: (link: string) => void) => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const token: Token = {
-        createdAt: new Date().getTime(),
-        expiredAt: tomorrow.getTime(),
-        uuid,
-      };
+        const token: Token = {
+          createdAt: new Date().getTime(),
+          expiredAt: tomorrow.getTime(),
+          name,
+          uuid,
+        };
 
-      const signedToken = signObj(token);
+        const signedToken = signObj(token);
 
-      const encodedToken = encodeURIComponent(signedToken);
-      const link = `${process.env.ORIGIN}login/?token=${encodedToken}`;
+        const encodedToken = encodeURIComponent(signedToken);
+        const link = `${process.env.ORIGIN}login/?token=${encodedToken}`;
 
-      ack(link);
-    });
+        ack(link);
+      }
+    );
 
     this.socket.on('logout', (uuid, ack: (success: boolean) => void) => {
       ack(this.mgr.clientApi.logoutUser(uuid));
