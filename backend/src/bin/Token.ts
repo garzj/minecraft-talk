@@ -12,4 +12,4 @@ export const tokenSchema = Joi.object({
   expiredAt: Joi.number(),
   name: Joi.string(),
   uuid: Joi.string(),
-});
+}).options({ presence: 'required' });

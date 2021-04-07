@@ -31,7 +31,7 @@ export class ClientConn extends APIConn {
 
     // API
     this.socket.on('get-player-data', (ackP: any) => {
-      const { value: ack, error } = Joi.function().validate(ackP);
+      const { value: ack, error } = Joi.function().required().validate(ackP);
       if (error) return vErr(error);
 
       ack({ uuid: this.token!.uuid, name: this.token!.name });
