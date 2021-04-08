@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import { is } from 'typescript-is';
 import { Socket } from 'socket.io';
 import { Token } from '../../bin/Token';
 import { validateToken } from '../../bin/validate-token';
@@ -25,14 +25,11 @@ export class ClientConn extends APIConn {
       message = e[0];
       next();
     });
-    const vErr = (error: Joi.ValidationError) => {
-      this.socket.emit('validation-error', message, error);
-    };
+    const vErr = () => this.socket.emit('validation-error', message);
 
     // API
-    this.socket.on('get-player-data', (ackP: any) => {
-      const { value: ack, error } = Joi.function().required().validate(ackP);
-      if (error) return vErr(error);
+    this.socket.on('get-player-data', (ack: Function) => {
+      if (typeof ack !== 'function') return vErr();
 
       ack({ uuid: this.token!.uuid, name: this.token!.name });
     });

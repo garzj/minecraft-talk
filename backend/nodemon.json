@@ -1,6 +1,6 @@
 {
   "watch": ["./src/**"],
   "ext": "ts,js,json",
-  "exec": "ts-node ./src/app.ts",
+  "exec": "ts-node --compiler ttypescript ./src/app.ts",
   "ignore": ["./node_modules", "./build"]
 }
