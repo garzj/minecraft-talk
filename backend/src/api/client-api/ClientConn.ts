@@ -48,6 +48,7 @@ export class ClientConn extends APIConn {
     this.socket.use((e, next) => {
       this.token = validateToken(this.token);
       if (this.token) {
+        this.socket.emit('logged-in');
         next();
       } else {
         this.socket.emit('token-expired');
