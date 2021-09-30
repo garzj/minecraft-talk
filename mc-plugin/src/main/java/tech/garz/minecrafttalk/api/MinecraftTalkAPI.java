@@ -80,8 +80,6 @@ public class MinecraftTalkAPI implements Listener {
       lastNeighborCount.clear();
     });
 
-    socket.connect();
-
     // We can use the lastNeighborCount map to keep track of all talking players
     socket.on("talk", (data) -> {
       String uuid = (String) data[0];
@@ -93,10 +91,14 @@ public class MinecraftTalkAPI implements Listener {
 
       if (talking) {
         lastNeighborCount.putIfAbsent(player, 0);
+
+        EmitVolumes(player);
       } else {
         lastNeighborCount.remove(player);
       }
     });
+
+    socket.connect();
   }
 
   public void disable() {
@@ -141,7 +143,7 @@ public class MinecraftTalkAPI implements Listener {
     if (!lastNeighborCount.containsKey(player))
       return;
 
-    // Calc all volumes to player neighbors
+    // Calc volumes to nearby players
     JSONObject volumes = new JSONObject();
 
     for (Entity entity : player.getNearbyEntities(MAX_TALK_DISTANCE, MAX_TALK_DISTANCE, MAX_TALK_DISTANCE)) {
@@ -165,7 +167,7 @@ public class MinecraftTalkAPI implements Listener {
       }
     }
 
-    // We don't wanna keep emitting empty volume lists
+    // We don't wanna keep emitting empty volume maps
     int neighborCount = volumes.length();
     if (neighborCount > 0 || lastNeighborCount.get(player) > 0) {
       socket.emit("update-vols", player.getUniqueId().toString(), volumes);
