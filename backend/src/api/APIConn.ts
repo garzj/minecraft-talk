@@ -2,11 +2,13 @@ import { Socket } from 'socket.io';
 import { APIManager } from './APIManager';
 
 export class APIConn {
-  mgr: APIManager;
+  apiMgr: APIManager;
   socket: Socket;
 
-  constructor(mgr: APIManager, socket: Socket) {
-    this.mgr = mgr;
+  constructor(apiMgr: APIManager, socket: Socket) {
+    this.apiMgr = apiMgr;
     this.socket = socket;
   }
+
+  onDisconnect?(): void;
 }

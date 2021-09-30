@@ -1,7 +1,7 @@
-import { middleware } from './middleware';
+import { applyMiddleware } from './middleware';
 import { APIManager } from '../api/APIManager';
 import { Application } from 'express';
-import { routes } from './routes';
+import { applyRoutes } from './routes';
 import { Server } from 'http';
 
 export class Web {
@@ -14,9 +14,9 @@ export class Web {
     this.app = app;
     this.apiMgr = apiMgr;
 
-    middleware(this.app);
+    applyMiddleware(this.app);
 
-    routes(this);
+    applyRoutes(this);
   }
 
   start() {

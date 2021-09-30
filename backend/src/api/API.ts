@@ -2,12 +2,16 @@ import { Namespace, Socket } from 'socket.io';
 import { APIConn } from './APIConn';
 import { APIManager } from './APIManager';
 
-export abstract class API {
+export abstract class API<TAPIConn extends APIConn> {
   mgr: APIManager;
   nsp: Namespace;
-  conns: APIConn[] = [];
+  conns: TAPIConn[] = [];
 
-  constructor(mgr: APIManager, apiPath: string, APIConnClass: typeof APIConn) {
+  constructor(
+    mgr: APIManager,
+    apiPath: string,
+    APIConnClass: new (mgr: APIManager, socket: Socket) => TAPIConn
+  ) {
     this.mgr = mgr;
     this.nsp = this.mgr.io.of('/api/' + apiPath);
 
@@ -16,6 +20,8 @@ export abstract class API {
       this.conns.push(conn);
 
       socket.on('disconnect', () => {
+        conn.onDisconnect && conn.onDisconnect();
+
         this.conns = this.conns.filter((c) => c !== conn);
         socket.offAny();
       });

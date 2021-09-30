@@ -8,47 +8,47 @@ import tech.garz.minecrafttalk.commands.VCTabCompleter;
 import tech.garz.minecrafttalk.api.MinecraftTalkAPI;
 
 public final class MinecraftTalk extends JavaPlugin {
-    public static MinecraftTalk INSTANCE;
+  public static MinecraftTalk INSTANCE;
 
-    private static MinecraftTalkAPI talkAPI;
+  private static MinecraftTalkAPI talkAPI;
 
-    @Override
-    public void onEnable() {
-        INSTANCE = this;
+  @Override
+  public void onEnable() {
+    INSTANCE = this;
 
-        loadConfig();
+    loadConfig();
 
-        registerCommands();
+    registerCommands();
 
-        talkAPI = new MinecraftTalkAPI();
-    }
+    talkAPI = new MinecraftTalkAPI();
+  }
 
-    @Override
-    public void onDisable() {
-        talkAPI.disable();
-    }
+  @Override
+  public void onDisable() {
+    talkAPI.disable();
+  }
 
-    public static MinecraftTalk getInstance() {
-        return INSTANCE;
-    }
+  public static MinecraftTalk getInstance() {
+    return INSTANCE;
+  }
 
-    public static MinecraftTalkAPI getAPI() {
-        return talkAPI;
-    }
+  public static MinecraftTalkAPI getAPI() {
+    return talkAPI;
+  }
 
-    private void loadConfig() {
-        FileConfiguration config = getConfig();
+  private void loadConfig() {
+    FileConfiguration config = getConfig();
 
-        config.options().copyDefaults(true);
-        config.addDefault("socket-uri", "http://localhost:3030/");
-        config.addDefault("conversation-secret", "LhKB7U1svggGYx7ZGaLb");
+    config.options().copyDefaults(true);
+    config.addDefault("socket-uri", "http://localhost:3030/");
+    config.addDefault("conversation-secret", "LhKB7U1svggGYx7ZGaLb");
 
-        saveConfig();
-    }
+    saveConfig();
+  }
 
-    private void registerCommands() {
-        PluginCommand voiceChatCmd = getCommand("vc");
-        voiceChatCmd.setExecutor(new VCCommand());
-        voiceChatCmd.setTabCompleter(new VCTabCompleter());
-    }
+  private void registerCommands() {
+    PluginCommand voiceChatCmd = getCommand("vc");
+    voiceChatCmd.setExecutor(new VCCommand());
+    voiceChatCmd.setTabCompleter(new VCTabCompleter());
+  }
 }

@@ -1,13 +1,16 @@
 {
   "name": "minecraft-talk",
-  "version": "0.0.1",
-  "description": "This file just manages two parts of the MinecraftTalk project: webapp, backend",
-  "author": "Johannes Garz <jojogarz123@gmail.com> (https://www.garz.tech/)",
   "private": true,
+  "license": "UNLICENSED",
+  "version": "1.0.0",
+  "description": "A minecraft plugin allowing players to communicate over a website while playing.",
+  "author": "Johannes Garz <jojogarz123@gmail.com> (https://www.garz.tech/)",
   "scripts": {
     "install-all": "npm i && cd webapp && npm i && cd ../backend && npm i",
-    "deploy": "cd webapp && npm run build && cd ../backend && npm run build && npm start",
-    "dev": "concurrently \"cd backend && npm run dev\" \"cd webapp && npm start\""
+    "dev": "npx concurrently \"cd backend && npm run dev\" \"cd webapp && npm start\"",
+    "build": "cd webapp && npm run build && cd ../backend && npm run build",
+    "start": "cd backend && npm start",
+    "deploy": "npm run build && npm start"
   },
   "devDependencies": {
     "concurrently": "^6.0.0"

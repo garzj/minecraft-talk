@@ -1,64 +1,79 @@
-import { is } from 'typescript-is';
 import { Socket } from 'socket.io';
-import { Token } from '../../bin/Token';
+import { hasOwnProperty } from '../../bin/helpers';
 import { validateToken } from '../../bin/validate-token';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
 import { clientAPIAuthenticator } from './authenticator';
+import { AuthedClient } from './AuthedClient';
 
 export class ClientConn extends APIConn {
-  token: Token | null;
+  authedClient?: AuthedClient;
 
-  constructor(mgr: APIManager, socket: Socket) {
-    super(mgr, socket);
+  constructor(apiMgr: APIManager, socket: Socket) {
+    super(apiMgr, socket);
 
-    this.token = clientAPIAuthenticator(this.socket);
-    this.auth();
-
-    this.api();
+    this.setupAuth();
   }
 
-  api() {
-    // Validation errors
-    let message: string;
+  private setupAuth() {
+    // Check auth on every api request
     this.socket.use((e, next) => {
-      message = e[0];
-      next();
-    });
-    const vErr = () => this.socket.emit('validation-error', message);
+      const msg: string = e[0];
 
-    // API
-    this.socket.on('get-player-data', (ack: Function) => {
-      if (typeof ack !== 'function') return vErr();
+      if (this.authedClient) {
+        const validToken = validateToken(this.authedClient.token);
 
-      ack({ uuid: this.token!.uuid, name: this.token!.name });
-    });
+        if (validToken) {
+          msg === 'check-token' && this.socket.emit('logged-in');
 
-    this.socket.on('logout', () => {
-      this.mgr.clientApi.logoutUser(this.token!.uuid);
-    });
-  }
-
-  logout() {
-    this.socket.emit('logout');
-    this.unauth();
-  }
-
-  auth() {
-    this.socket.use((e, next) => {
-      this.token = validateToken(this.token);
-      if (this.token) {
-        this.socket.emit('logged-in');
-        next();
-      } else {
-        this.socket.emit('token-expired');
-        this.unauth();
+          return next();
+        }
       }
+
+      this.socket.emit('token-expired');
+      this.unauth();
     });
+
+    // Authorize client
+    const token = clientAPIAuthenticator(this.socket);
+    if (!token) return;
+
+    const client = new AuthedClient(this, token);
+    this.authedClient = client;
+
+    // Add it to the client list
+    const uuid = token.uuid;
+    const clients = this.apiMgr.clientApi.clients;
+
+    if (!hasOwnProperty(clients, uuid)) {
+      clients[uuid] = {};
+    }
+    clients[uuid][uuid] = client;
   }
 
   unauth() {
-    this.token = null;
+    if (!this.authedClient) return;
+
     this.socket.offAny();
+
+    // Remove client references
+    const client = this.authedClient;
+    delete this.authedClient;
+
+    const uuid = client.token.uuid;
+    const clients = this.apiMgr.clientApi.clients;
+
+    if (!hasOwnProperty(clients, uuid)) return;
+    const userClients = clients[uuid];
+
+    if (!hasOwnProperty(userClients, client.getId())) return;
+    delete userClients[client.getId()];
+
+    if (Object.keys(clients[uuid]).length !== 0) return;
+    delete clients[uuid];
+  }
+
+  onDisconnect() {
+    this.unauth();
   }
 }

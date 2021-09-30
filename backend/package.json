@@ -1,22 +1,13 @@
 {
   "name": "minecraft-talk-backend",
-  "scripts": {
-    "build": "ttsc",
-    "start": "node ./build/app.js",
-    "dev": "export NODE_ENV=development || set NODE_ENV=development&& nodemon",
-    "deploy": "npm run build && npm start"
-  },
   "private": true,
-  "devDependencies": {
-    "@types/cookie-parser": "^1.4.2",
-    "@types/cookie-signature": "^1.0.3",
-    "@types/express": "^4.17.11",
-    "@types/node": "^14.14.35",
-    "@types/socket.io": "^2.1.13",
-    "nodemon": "^2.0.7",
-    "ts-node": "^9.1.1",
-    "ttypescript": "^1.5.12",
-    "typescript": "^4.2.3"
+  "license": "UNLICENSED",
+  "main": "./src/app.ts",
+  "scripts": {
+    "dev": "export NODE_ENV=development || set NODE_ENV=development&& npx ts-node-dev --respawn --poll --exit-child --no-deps -C ttypescript ./src/app.ts",
+    "build": "ttsc -p .",
+    "start": "node ./build/backend/src/app.js",
+    "deploy": "npm run build && npm start"
   },
   "dependencies": {
     "cookie-parser": "^1.4.5",
@@ -25,5 +16,15 @@
     "express": "^4.17.1",
     "socket.io": "^4.0.0",
     "typescript-is": "^0.18.2"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.2",
+    "@types/cookie-signature": "^1.0.3",
+    "@types/express": "^4.17.11",
+    "@types/node": "^14.14.35",
+    "@types/socket.io": "^2.1.13",
+    "ts-node-dev": "^1.1.8",
+    "ttypescript": "^1.5.12",
+    "typescript": "^4.2.3"
   }
 }

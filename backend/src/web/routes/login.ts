@@ -23,7 +23,5 @@ loginRouter.get('/login', (req, res) => {
   }
   const token: Token = tokenObj;
 
-  // ! Don't refresh this token, otherwise one could do this infinitely
-
   res.cookie('token', token, { signed: true }).redirect('/');
 });
