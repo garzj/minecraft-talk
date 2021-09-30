@@ -26,6 +26,7 @@ public class MinecraftTalkAPI implements Listener {
 
   private Manager socketManager;
   private Socket socket;
+  private boolean socketConnError = false;
 
   private Map<Player, Integer> lastNeighborCount = new HashMap<>();
 
@@ -64,10 +65,16 @@ public class MinecraftTalkAPI implements Listener {
 
     // Debug
     pl.getLogger().info("Connecting to the voice chat server...");
-    socket.on(Socket.EVENT_CONNECT, args -> pl.getLogger().info("Connection established!"));
+    socket.on(Socket.EVENT_CONNECT, args -> {
+      pl.getLogger().info("Connection established!");
+      this.socketConnError = false;
+    });
     socket.on("error", args -> pl.getLogger().info("Socket error " + Arrays.toString(args)));
     socket.on(Socket.EVENT_CONNECT_ERROR, args -> {
-      pl.getLogger().info("Socket connection error " + Arrays.toString(args));
+      if (!this.socketConnError) {
+        pl.getLogger().info("Socket connection error " + Arrays.toString(args));
+      }
+      this.socketConnError = true;
 
       // Clear talking players
       lastNeighborCount.clear();
