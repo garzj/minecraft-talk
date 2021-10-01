@@ -5,20 +5,21 @@ import io.socket.client.IO;
 import io.socket.client.Manager;
 import io.socket.client.Socket;
 import io.socket.engineio.client.transports.WebSocket;
-import org.bukkit.entity.Entity;
+
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import tech.garz.minecrafttalk.MinecraftTalk;
+import tech.garz.minecrafttalk.Util;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-
-import com.google.gson.JsonObject;
 
 public class MinecraftTalkAPI implements Listener {
   private static final double MAX_TALK_DISTANCE = 16;
@@ -28,7 +29,7 @@ public class MinecraftTalkAPI implements Listener {
   private Socket socket;
   private boolean socketConnError = false;
 
-  private Map<Player, Integer> lastNeighborCount = new HashMap<>();
+  private HashMap<UUID, TalkingPlayer> talkingPlayers = new HashMap<>();
 
   public MinecraftTalkAPI() {
     MinecraftTalk.getInstance().getServer().getPluginManager().registerEvents(this, MinecraftTalk.getInstance());
@@ -69,18 +70,21 @@ public class MinecraftTalkAPI implements Listener {
       pl.getLogger().info("Connection established!");
       this.socketConnError = false;
     });
-    socket.on("error", args -> pl.getLogger().info("Socket error " + Arrays.toString(args)));
+    socket.on("error", args -> {
+      pl.getLogger().info("Socket error " + Arrays.toString(args));
+
+      talkingPlayers.clear();
+    });
     socket.on(Socket.EVENT_CONNECT_ERROR, args -> {
       if (!this.socketConnError) {
         pl.getLogger().info("Socket connection error " + Arrays.toString(args));
       }
       this.socketConnError = true;
 
-      // Clear talking players
-      lastNeighborCount.clear();
+      talkingPlayers.clear();
     });
 
-    // We can use the lastNeighborCount map to keep track of all talking players
+    // Keep track of all talking players
     socket.on("talk", (data) -> {
       String uuid = (String) data[0];
       boolean talking = (boolean) data[1];
@@ -90,11 +94,13 @@ public class MinecraftTalkAPI implements Listener {
         return;
 
       if (talking) {
-        lastNeighborCount.putIfAbsent(player, 0);
+        if (!talkingPlayers.containsKey(player.getUniqueId())) {
+          talkingPlayers.put(player.getUniqueId(), new TalkingPlayer());
+        }
 
         EmitVolumes(player);
       } else {
-        lastNeighborCount.remove(player);
+        talkingPlayers.remove(player.getUniqueId());
       }
     });
 
@@ -140,40 +146,68 @@ public class MinecraftTalkAPI implements Listener {
   }
 
   void EmitVolumes(Player player) {
-    if (!lastNeighborCount.containsKey(player))
-      return;
+    Bukkit.getScheduler().scheduleSyncDelayedTask(MinecraftTalk.getInstance(), () -> {
+      if (!talkingPlayers.containsKey(player.getUniqueId()))
+        return;
+      TalkingPlayer talkingPlayer = talkingPlayers.get(player.getUniqueId());
 
-    // Calc volumes to nearby players
-    JSONObject volumes = new JSONObject();
+      // Volumes to nearby players
+      JSONObject volumes = new JSONObject();
 
-    for (Entity entity : player.getNearbyEntities(MAX_TALK_DISTANCE, MAX_TALK_DISTANCE, MAX_TALK_DISTANCE)) {
-      if (entity instanceof Player) {
-        Player neighbor = (Player) entity;
-        if (!lastNeighborCount.containsKey(neighbor))
-          continue; // Ignore players, that aren't in the talk
+      if (player.isOnline() && !player.isDead()) {
+        for (Player neighbor : Util.getNearbyPlayers(player.getLocation(), MAX_TALK_DISTANCE + 1)) {
+          if (player == neighbor)
+            continue;
 
-        String neighborUuid = neighbor.getUniqueId().toString();
+          if (!talkingPlayers.containsKey(neighbor.getUniqueId()))
+            continue; // Ignore players, that aren't in the talk
+          TalkingPlayer talkingNeighbor = talkingPlayers.get(neighbor.getUniqueId());
 
-        double distanceSquared = player.getEyeLocation().distanceSquared(neighbor.getEyeLocation());
-        double vol = CalcVolume(distanceSquared);
-        if (vol <= 0)
-          continue; // Skip players that we can't hear
+          String neighborUuid = neighbor.getUniqueId().toString();
 
-        try {
-          volumes.put(neighborUuid, vol);
-        } catch (JSONException e) {
-          e.printStackTrace();
+          double distanceSquared = player.getEyeLocation().distanceSquared(neighbor.getEyeLocation());
+          double vol = CalcVolume(distanceSquared);
+          if (vol <= 0)
+            continue; // Skip players that we can't hear
+
+          try {
+            volumes.put(neighborUuid, vol);
+
+            talkingPlayer.conns.put(neighbor.getUniqueId(), neighbor);
+            talkingNeighbor.conns.put(neighbor.getUniqueId(), player);
+          } catch (JSONException e) {
+            e.printStackTrace();
+          }
         }
       }
-    }
 
-    // We don't wanna keep emitting empty volume maps
-    int neighborCount = volumes.length();
-    if (neighborCount > 0 || lastNeighborCount.get(player) > 0) {
-      socket.emit("update-vols", player.getUniqueId().toString(), volumes);
-    }
+      // Emit volumes of 0 for players that got out of range
+      Set<UUID> connsToRemove = new HashSet<>();
+      for (Player conn : talkingPlayer.conns.values()) {
+        String connUuid = conn.getUniqueId().toString();
 
-    lastNeighborCount.put(player, neighborCount);
+        if (!volumes.has(connUuid)) {
+          try {
+            volumes.put(connUuid, 0);
+          } catch (JSONException e) {
+            e.printStackTrace();
+          }
+
+          connsToRemove.add(conn.getUniqueId());
+          talkingPlayers.get(conn.getUniqueId()).conns.remove(player.getUniqueId());
+        }
+      }
+      for (UUID uuid : connsToRemove) {
+        talkingPlayer.conns.remove(uuid);
+      }
+
+      // We don't wanna keep emitting empty volume maps
+      int connCount = volumes.length();
+      if (connCount > 0 || talkingPlayer.lastConnCount > 0) {
+        socket.emit("update-vols", player.getUniqueId().toString(), volumes);
+      }
+      talkingPlayer.lastConnCount = connCount;
+    }, 0L);
   }
 
   @EventHandler
@@ -198,9 +232,6 @@ public class MinecraftTalkAPI implements Listener {
 
   @EventHandler
   private void onPlayerQuit(PlayerQuitEvent e) {
-    if (!lastNeighborCount.containsKey(e.getPlayer()))
-      return;
-
-    socket.emit("update-vols", e.getPlayer().getUniqueId().toString(), new JsonObject());
+    EmitVolumes(e.getPlayer());
   }
 }
