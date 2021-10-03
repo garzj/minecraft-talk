@@ -34,6 +34,7 @@ export class ServerAPI extends API<ServerConn> {
         volume = serverVolume;
       }
     }
+    if (this.playerVols.get(uuid1, uuid2) === volume) return;
     this.playerVols.set(uuid1, uuid2, volume);
 
     // Update volume from every uuid1's client to every uuid2's client
