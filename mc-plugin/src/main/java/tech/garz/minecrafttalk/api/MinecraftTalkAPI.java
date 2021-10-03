@@ -86,21 +86,27 @@ public class MinecraftTalkAPI implements Listener {
 
     // Keep track of all talking players
     socket.on("talk", (data) -> {
-      String uuid = (String) data[0];
+      String strUuid = (String) data[0];
       boolean talking = (boolean) data[1];
 
-      Player player = pl.getServer().getPlayer(UUID.fromString(uuid));
-      if (player == null)
+      UUID uuid;
+      try {
+        uuid = UUID.fromString(strUuid);
+      } catch (IllegalArgumentException e) {
         return;
+      }
 
       if (talking) {
-        if (!talkingPlayers.containsKey(player.getUniqueId())) {
-          talkingPlayers.put(player.getUniqueId(), new TalkingPlayer());
+        if (!talkingPlayers.containsKey(uuid)) {
+          talkingPlayers.put(uuid, new TalkingPlayer());
         }
 
-        EmitVolumes(player);
+        Player player = pl.getServer().getPlayer(uuid);
+        if (player != null) {
+          EmitVolumes(player);
+        }
       } else {
-        talkingPlayers.remove(player.getUniqueId());
+        talkingPlayers.remove(uuid);
       }
     });
 
