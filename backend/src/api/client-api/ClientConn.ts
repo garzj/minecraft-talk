@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io';
-import { hasOwnProperty } from '../../bin/helpers';
-import { validateToken } from '../../bin/validate-token';
+import { hasOwnProperty } from '../../bin/util';
+import { validateToken } from '../../bin/token/validate-token';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
 import { clientAPIAuthenticator } from './authenticator';
@@ -12,11 +12,21 @@ export class ClientConn extends APIConn {
   constructor(apiMgr: APIManager, socket: Socket) {
     super(apiMgr, socket);
 
-    this.setupAuth();
+    this.auth();
   }
 
-  private setupAuth() {
-    // Check auth on every api request
+  private auth() {
+    // Authorize client
+    const token = clientAPIAuthenticator(this.socket);
+    if (!token) return;
+
+    const client = new AuthedClient(this.mgr, this, token);
+    this.authedClient = client;
+
+    // Add it to the authedClient map
+    this.mgr.clientApi.authedClients.set(token.uuid, this.socket.id, client);
+
+    // Check for expiration on every api request
     this.socket.use((e, next) => {
       const msg: string = e[0];
 
@@ -33,22 +43,6 @@ export class ClientConn extends APIConn {
       this.socket.emit('token-expired');
       this.unauth();
     });
-
-    // Authorize client
-    const token = clientAPIAuthenticator(this.socket);
-    if (!token) return;
-
-    const client = new AuthedClient(this, token);
-    this.authedClient = client;
-
-    // Add it to the client list
-    const uuid = token.uuid;
-    const clients = this.apiMgr.clientApi.clients;
-
-    if (!hasOwnProperty(clients, uuid)) {
-      clients[uuid] = {};
-    }
-    clients[uuid][uuid] = client;
   }
 
   unauth() {
@@ -56,21 +50,13 @@ export class ClientConn extends APIConn {
 
     this.socket.offAny();
 
-    // Remove client references
+    // Destroy client
     const client = this.authedClient;
     delete this.authedClient;
+    client.destroy();
 
-    const uuid = client.token.uuid;
-    const clients = this.apiMgr.clientApi.clients;
-
-    if (!hasOwnProperty(clients, uuid)) return;
-    const userClients = clients[uuid];
-
-    if (!hasOwnProperty(userClients, client.getId())) return;
-    delete userClients[client.getId()];
-
-    if (Object.keys(clients[uuid]).length !== 0) return;
-    delete clients[uuid];
+    // Remove it from the authedClient map
+    this.mgr.clientApi.authedClients.unset(client.token.uuid, this.socket.id);
   }
 
   onDisconnect() {

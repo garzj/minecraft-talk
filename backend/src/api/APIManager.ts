@@ -5,6 +5,7 @@ import { ServerAPI } from './server-api/ServerAPI';
 
 export class APIManager {
   io: SocketIO.Server;
+
   serverApi: ServerAPI;
   clientApi: ClientAPI;
 

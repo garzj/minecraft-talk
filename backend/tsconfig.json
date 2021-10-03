@@ -9,10 +9,7 @@
     "typeRoots": ["node_modules/@types"],
     "resolveJsonModule": true,
     "noImplicitAny": true,
-    "strict": true,
-    "plugins": [
-      { "transform": "typescript-is/lib/transform-inline/transformer" }
-    ]
+    "strict": true
   },
   "exclude": ["./node_modules", "./build"],
   "include": ["./src", "../shared"]

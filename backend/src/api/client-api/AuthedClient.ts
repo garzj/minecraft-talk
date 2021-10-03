@@ -1,124 +1,97 @@
 import { PlayerData } from '../../bin/PlayerData';
-import { hasOwnProperty } from '../../bin/helpers';
-import { Token } from '../../bin/Token';
+import { hasOwnProperty } from '../../bin/util';
+import { Token } from '../../bin/token/Token';
 import { ClientConn } from './ClientConn';
-// import { RTCConnector } from './RTCConnector';
+import { RTCConnection } from './RTCConnection';
+import { RelationMap } from '../../bin/two-key-map/RelationMap';
+import { APIManager } from '../APIManager';
 
 export class AuthedClient {
-  clientConn: ClientConn;
-  token: Token;
+  emitVErr!: () => void;
 
-  conns: { [uuid: string]: Set<string> } = {};
-
-  vErr: () => void;
-
-  constructor(clientConn: ClientConn, token: Token) {
-    this.clientConn = clientConn;
-    this.token = token;
-
-    // API validation errors
-    let message: string;
-    this.clientConn.socket.use((e, next) => {
-      message = e[0];
-      next();
-    });
-    this.vErr = () => this.clientConn.socket.emit('validation-error', message);
-
+  constructor(
+    public mgr: APIManager,
+    public clientConn: ClientConn,
+    public token: Token
+  ) {
     this.setupApi();
 
-    // Directly connect players opening the website
-    this.initConnections();
+    this.mgr.serverApi.joinTalk(this.token.uuid);
   }
 
   getPlayerData(): PlayerData {
     return { uuid: this.token.uuid, name: this.token.name };
   }
 
-  getId() {
+  getSocketId() {
     return this.clientConn.socket.id;
   }
 
   setVolumeTo(other: AuthedClient, volume: number): void {
-    const alreadyConnected =
-      hasOwnProperty(this.conns, other.token.uuid) &&
-      this.conns[other.token.uuid].has(other.getId());
+    const rtcConns = this.mgr.clientApi.rtcConns;
+
+    const rtcConn = rtcConns.get(this.getSocketId(), other.getSocketId());
 
     if (volume === 0) {
       // Disconnect
-      if (!alreadyConnected) return;
+      if (!rtcConn) return;
 
-      this.disconnectFrom(other);
-      other.disconnectFrom(this);
-      return;
+      rtcConns.unset(this.getSocketId(), other.getSocketId());
+      return rtcConn.destroy();
     }
 
-    if (alreadyConnected) {
-      // Update volumes
-      this.clientConn.socket.emit('update-vol', other.token.uuid, volume);
-      other.clientConn.socket.emit('update-vol', this.token.uuid, volume);
+    if (rtcConn) {
+      rtcConn.updateVolume(volume);
     } else {
-      // TODO: Connect clients
-      if (!hasOwnProperty(this.conns, other.token.uuid)) {
-        this.conns[other.token.uuid] = new Set();
-      }
-      this.conns[other.token.uuid].add(other.getId());
-
-      // new RTCConnector(this, other, volume);
+      rtcConns.set(
+        this.getSocketId(),
+        other.getSocketId(),
+        new RTCConnection(this, other, volume)
+      );
     }
-  }
-
-  disconnectFrom(other: AuthedClient) {
-    if (!hasOwnProperty(this.conns, other.token.uuid)) return;
-    const connIds = this.conns[other.token.uuid];
-    if (!connIds.has(other.getId())) return;
-
-    // TODO: Close conenction
-    // this.clientConn.socket.emit('rtc-close', other.token.uuid, other.getId());
-
-    connIds.delete(other.getId());
-    if (connIds.size === 0) {
-      delete this.conns[other.token.uuid];
-    }
-  }
-
-  logout() {
-    this.clientConn.socket.emit('logout');
-    this.clientConn.unauth();
   }
 
   private setupApi() {
     const socket = this.clientConn.socket;
 
+    // Validation errors
+    let message: string;
+    socket.use((e, next) => {
+      message = e[0];
+      next();
+    });
+    this.emitVErr = () => socket.emit('validation-error', message);
+
+    // API
     socket.on('get-player-data', (ack: (player: PlayerData) => void) => {
-      if (typeof ack !== 'function') return this.vErr();
+      if (typeof ack !== 'function') return this.emitVErr();
 
       ack(this.getPlayerData());
     });
 
-    socket.on('logout', () => {
-      this.clientConn.apiMgr.clientApi.logoutUser(this.token.uuid);
-    });
+    this.initVolumes();
   }
 
-  private initConnections() {
-    for (let serverConn of this.clientConn.apiMgr.serverApi.conns) {
-      const playerConns = serverConn.playerConns;
-
-      const connectedUuids = playerConns.getKeys(this.token.uuid);
-      if (!connectedUuids) continue;
-
-      for (let connectedUuid of connectedUuids) {
-        const playerConn = playerConns.get(this.token.uuid, connectedUuid);
-        if (!playerConn) continue;
-
-        const clients = this.clientConn.apiMgr.clientApi.clients;
-        if (!hasOwnProperty(clients, connectedUuid)) continue;
-
-        const connectedClients = Object.values(clients[connectedUuid]);
-        for (let connectedClient of connectedClients) {
-          this.setVolumeTo(connectedClient, playerConn.volume);
-        }
+  private initVolumes() {
+    // Update volumes to all connected clients
+    this.mgr.serverApi.playerVols.forEach(
+      this.token.uuid,
+      (volume, _, otherUuid) => {
+        this.mgr.clientApi.authedClients.forEach(otherUuid, (other) => {
+          this.setVolumeTo(other, volume);
+        });
       }
-    }
+    );
+  }
+
+  logout() {
+    // I know, the client could ignore this message,
+    // but since i have no database to invalidate tokens
+    // (because I'm lazy), there's no better way
+    this.clientConn.socket.emit('logout');
+  }
+
+  destroy() {
+    this.mgr.serverApi.leaveTalk(this.token.uuid);
   }
 }

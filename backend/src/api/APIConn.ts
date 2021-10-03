@@ -2,11 +2,11 @@ import { Socket } from 'socket.io';
 import { APIManager } from './APIManager';
 
 export class APIConn {
-  apiMgr: APIManager;
+  mgr: APIManager;
   socket: Socket;
 
   constructor(apiMgr: APIManager, socket: Socket) {
-    this.apiMgr = apiMgr;
+    this.mgr = apiMgr;
     this.socket = socket;
   }
 

@@ -3,26 +3,25 @@ import { APIConn } from './APIConn';
 import { APIManager } from './APIManager';
 
 export abstract class API<TAPIConn extends APIConn> {
-  mgr: APIManager;
   nsp: Namespace;
-  conns: TAPIConn[] = [];
+  apiConns: Set<TAPIConn> = new Set();
 
   constructor(
-    mgr: APIManager,
+    public mgr: APIManager,
     apiPath: string,
     APIConnClass: new (mgr: APIManager, socket: Socket) => TAPIConn
   ) {
-    this.mgr = mgr;
     this.nsp = this.mgr.io.of('/api/' + apiPath);
 
     this.nsp.on('connection', (socket) => {
-      const conn = new APIConnClass(this.mgr, socket);
-      this.conns.push(conn);
+      const apiConn = new APIConnClass(this.mgr, socket);
+      this.apiConns.add(apiConn);
+
+      socket.on('error', () => console.log(`Socket error: ${socket.id}`));
 
       socket.on('disconnect', () => {
-        conn.onDisconnect && conn.onDisconnect();
-
-        this.conns = this.conns.filter((c) => c !== conn);
+        apiConn.onDisconnect?.();
+        this.apiConns.delete(apiConn);
         socket.offAny();
       });
     });
