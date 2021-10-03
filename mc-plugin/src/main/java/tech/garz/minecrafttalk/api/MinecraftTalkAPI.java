@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -227,12 +228,22 @@ public class MinecraftTalkAPI implements Listener {
   }
 
   @EventHandler
-  private void onPlayerJoin(PlayerJoinEvent e) {
+  private void onPlayerSneakToggle(PlayerToggleSneakEvent e) {
     EmitVolumes(e.getPlayer());
   }
 
   @EventHandler
-  private void onPlayerSneakToggle(PlayerToggleSneakEvent e) {
+  private void onPlayerRespawn(PlayerRespawnEvent e) {
+    EmitVolumes(e.getPlayer());
+  }
+
+  @EventHandler
+  private void onPlayerDeath(PlayerDeathEvent e) {
+    EmitVolumes(e.getEntity());
+  }
+
+  @EventHandler
+  private void onPlayerJoin(PlayerJoinEvent e) {
     EmitVolumes(e.getPlayer());
   }
 
