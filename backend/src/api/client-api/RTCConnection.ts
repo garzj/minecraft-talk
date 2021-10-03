@@ -17,14 +17,18 @@ export class RTCConnection {
       `Destroying connection: ${this.client.getSocketId()} & ${this.other.getSocketId()}`
     );
 
-    this.client.clientConn.socket.emit('rtc-close', this.other.getSocketId());
-    this.other.clientConn.socket.emit('rtc-close', this.client.getSocketId());
+    if (!this.client.clientConn.socket.disconnected) {
+      this.client.clientConn.socket.emit('rtc-close', this.other.getSocketId());
+    }
+    if (!this.other.clientConn.socket.disconnected) {
+      this.other.clientConn.socket.emit('rtc-close', this.client.getSocketId());
+    }
   }
 
   updateVolume(volume: number) {
     // !DEBUG
     console.log(
-      `Volume update: ${this.client.getSocketId()} & ${this.other.getSocketId()}`
+      `Volume update: ${this.client.getSocketId()} & ${this.other.getSocketId()}: ${volume}`
     );
 
     this.client.clientConn.socket.emit(

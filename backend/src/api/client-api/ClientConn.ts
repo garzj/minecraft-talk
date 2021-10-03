@@ -18,7 +18,7 @@ export class ClientConn extends APIConn {
   private auth() {
     // Authorize client
     const token = clientAPIAuthenticator(this.socket);
-    if (!token) return;
+    if (!token) return this.socket.emit('token-expired');
 
     const client = new AuthedClient(this.mgr, this, token);
     this.authedClient = client;

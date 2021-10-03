@@ -92,6 +92,9 @@ export class AuthedClient {
   }
 
   destroy() {
+    this.mgr.clientApi.rtcConns.forEach(this.getSocketId(), (rtcConn) =>
+      rtcConn.destroy()
+    );
     this.mgr.serverApi.leaveTalk(this.token.uuid);
   }
 }
