@@ -24,7 +24,7 @@
     "@types/cookie-signature": "^1.0.3",
     "@types/express": "^4.17.11",
     "@types/node": "^14.14.35",
-    "@types/node-turn": "../test/@types/node-turn",
+    "@types/node-turn": "../@types/node-turn",
     "@types/socket.io": "^2.1.13",
     "@zerollup/ts-transform-paths": "^1.7.18",
     "ts-node-dev": "^1.1.8",
