@@ -62,10 +62,8 @@ export class AuthedClient {
     this.emitVErr = () => socket.emit('validation-error', message);
 
     // API
-    socket.on('get-player-data', (ack: (player: PlayerData) => void) => {
-      if (typeof ack !== 'function') return this.emitVErr();
-
-      ack(this.getPlayerData());
+    socket.on('get-player-data', () => {
+      socket.emit('set-player-data', this.getPlayerData());
     });
 
     this.initVolumes();

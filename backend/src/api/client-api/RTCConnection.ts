@@ -22,12 +22,12 @@ export class RTCConnection {
 
   updateVolume(volume: number) {
     this.client.clientConn.socket.emit(
-      'update-vol',
+      'rtc-update-vol',
       this.client.getSocketId(),
       volume
     );
     this.other.clientConn.socket.emit(
-      'update-vol',
+      'rtc-update-vol',
       this.other.getSocketId(),
       volume
     );
@@ -44,15 +44,13 @@ export class RTCConnection {
       },
     };
 
-    this.client.clientConn.socket.emit(
-      'rtc-create-offer',
-      rtcSetupData,
-      (offer: string) => {
-        if (typeof offer !== 'string') return this.client.emitVErr();
+    this.client.clientConn.socket.emit('rtc-create-offer', rtcSetupData);
 
-        this.getAnswer(offer);
-      }
-    );
+    this.client.clientConn.socket.on('rtc-offer', (offer: string) => {
+      if (typeof offer !== 'string') return this.client.emitVErr();
+
+      this.getAnswer(offer);
+    });
   }
 
   private getAnswer(offer: string) {
@@ -66,16 +64,13 @@ export class RTCConnection {
       },
     };
 
-    this.other.clientConn.socket.emit(
-      'rtc-create-answer',
-      rtcSetupData,
-      offer,
-      (answer: string) => {
-        if (typeof answer !== 'string') return this.other.emitVErr();
+    this.other.clientConn.socket.emit('rtc-create-answer', rtcSetupData, offer);
 
-        this.setAnswer(answer);
-      }
-    );
+    this.other.clientConn.socket.on('rtc-answer', (answer: string) => {
+      if (typeof answer !== 'string') return this.other.emitVErr();
+
+      this.setAnswer(answer);
+    });
   }
 
   private setAnswer(answer: string) {
