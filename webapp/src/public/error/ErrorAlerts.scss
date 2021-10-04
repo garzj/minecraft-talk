@@ -1,0 +1,44 @@
+.error-alerts {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+$text-margin: 10px;
+
+.error-alert-container,
+.error-alert {
+  position: relative;
+
+  overflow: hidden;
+  background: whitesmoke;
+  color: #d60e00;
+  text-align: center;
+  font-size: 1rem;
+
+  transition: height ease 500ms, padding ease 500ms;
+
+  height: 0;
+
+  &.-shown {
+    height: calc(1rem + #{$text-margin * 2 + 3px});
+  }
+}
+
+.error-alert {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  > span {
+    position: absolute;
+    left: 0;
+    bottom: $text-margin;
+    width: 100%;
+  }
+}
+
+.error-alerts-children {
+  flex-grow: 1;
+}
