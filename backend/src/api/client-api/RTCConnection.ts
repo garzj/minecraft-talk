@@ -1,4 +1,16 @@
+import { PlayerData } from '../../bin/PlayerData';
 import { AuthedClient } from './AuthedClient';
+import { genTurnUser, TurnUser } from './turn-server';
+
+interface RTCSetupData {
+  turnUser: TurnUser;
+  playerData: PlayerData;
+  volume: number;
+  to: {
+    playerData: PlayerData;
+    socketId: string;
+  };
+}
 
 export class RTCConnection {
   constructor(
@@ -21,22 +33,30 @@ export class RTCConnection {
   updateVolume(volume: number) {
     this.client.clientConn.socket.emit(
       'update-vol',
-      this.client.token.uuid,
+      this.client.getSocketId(),
       volume
     );
     this.other.clientConn.socket.emit(
       'update-vol',
-      this.other.token.uuid,
+      this.other.getSocketId(),
       volume
     );
   }
 
   private getOffer() {
+    const rtcSetupData: RTCSetupData = {
+      turnUser: genTurnUser(this.client.token.uuid),
+      playerData: this.client.getPlayerData(),
+      volume: this.volume,
+      to: {
+        playerData: this.other.getPlayerData(),
+        socketId: this.other.getSocketId(),
+      },
+    };
+
     this.client.clientConn.socket.emit(
-      'rtc-get-offer',
-      this.other.getPlayerData(),
-      this.other.getSocketId(),
-      this.volume,
+      'rtc-create-offer',
+      rtcSetupData,
       (offer: string) => {
         if (typeof offer !== 'string') return this.client.emitVErr();
 
@@ -46,11 +66,19 @@ export class RTCConnection {
   }
 
   private getAnswer(offer: string) {
+    const rtcSetupData: RTCSetupData = {
+      turnUser: genTurnUser(this.other.token.uuid),
+      playerData: this.other.getPlayerData(),
+      volume: this.volume,
+      to: {
+        playerData: this.client.getPlayerData(),
+        socketId: this.client.getSocketId(),
+      },
+    };
+
     this.other.clientConn.socket.emit(
-      'rtc-get-answer',
-      this.client.getPlayerData(),
-      this.client.getSocketId(),
-      this.volume,
+      'rtc-create-answer',
+      rtcSetupData,
       offer,
       (answer: string) => {
         if (typeof answer !== 'string') return this.other.emitVErr();
@@ -62,8 +90,7 @@ export class RTCConnection {
 
   private setAnswer(answer: string) {
     this.client.clientConn.socket.emit(
-      'rtc-set-answer',
-      this.other.token.uuid,
+      'rtc-apply-answer',
       this.other.getSocketId(),
       answer
     );

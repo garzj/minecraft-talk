@@ -12,6 +12,7 @@
   "dependencies": {
     "cookie-parser": "^1.4.5",
     "cookie-signature": "1.1.0",
+    "crypto": "^1.0.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "node-turn": "^0.0.6",
@@ -23,6 +24,7 @@
     "@types/cookie-signature": "^1.0.3",
     "@types/express": "^4.17.11",
     "@types/node": "^14.14.35",
+    "@types/node-turn": "../test/@types/node-turn",
     "@types/socket.io": "^2.1.13",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.2.3"

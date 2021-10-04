@@ -1,10 +1,9 @@
 import { PlayerData } from '../../bin/PlayerData';
-import { hasOwnProperty } from '../../bin/util';
 import { Token } from '../../bin/token/Token';
 import { ClientConn } from './ClientConn';
 import { RTCConnection } from './RTCConnection';
-import { RelationMap } from '../../bin/two-key-map/RelationMap';
 import { APIManager } from '../APIManager';
+import { dropTurnUser } from './turn-server';
 
 export class AuthedClient {
   emitVErr!: () => void;
@@ -96,5 +95,7 @@ export class AuthedClient {
       rtcConn.destroy()
     );
     this.mgr.serverApi.leaveTalk(this.token.uuid);
+
+    dropTurnUser(this.token.uuid);
   }
 }
