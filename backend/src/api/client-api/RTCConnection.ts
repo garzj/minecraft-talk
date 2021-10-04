@@ -1,7 +1,5 @@
 import { AuthedClient } from './AuthedClient';
 
-// TODO: TURN server
-
 export class RTCConnection {
   constructor(
     public client: AuthedClient,
@@ -12,11 +10,6 @@ export class RTCConnection {
   }
 
   destroy() {
-    // !DEBUG
-    console.log(
-      `Destroying connection: ${this.client.getSocketId()} & ${this.other.getSocketId()}`
-    );
-
     if (!this.client.clientConn.socket.disconnected) {
       this.client.clientConn.socket.emit('rtc-close', this.other.getSocketId());
     }
@@ -26,11 +19,6 @@ export class RTCConnection {
   }
 
   updateVolume(volume: number) {
-    // !DEBUG
-    console.log(
-      `Volume update: ${this.client.getSocketId()} & ${this.other.getSocketId()}: ${volume}`
-    );
-
     this.client.clientConn.socket.emit(
       'update-vol',
       this.client.token.uuid,
@@ -44,11 +32,6 @@ export class RTCConnection {
   }
 
   private getOffer() {
-    // !DEBUG
-    console.log(
-      `New connection: ${this.client.getSocketId()} & ${this.other.getSocketId()}`
-    );
-
     this.client.clientConn.socket.emit(
       'rtc-get-offer',
       this.other.getPlayerData(),
