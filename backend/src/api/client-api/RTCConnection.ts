@@ -36,7 +36,6 @@ export class RTCConnection {
   private getOffer() {
     const rtcSetupData: RTCSetupData = {
       turnUser: genTurnUser(this.client.token.uuid),
-      playerData: this.client.getPlayerData(),
       volume: this.volume,
       to: {
         playerData: this.other.getPlayerData(),
@@ -56,7 +55,6 @@ export class RTCConnection {
   private getAnswer(offer: string) {
     const rtcSetupData: RTCSetupData = {
       turnUser: genTurnUser(this.other.token.uuid),
-      playerData: this.other.getPlayerData(),
       volume: this.volume,
       to: {
         playerData: this.client.getPlayerData(),
