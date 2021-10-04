@@ -3,7 +3,7 @@ import { signObj } from '../../bin/sign-obj';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
 import { Token } from '../../bin/token/Token';
-import { RelationMap } from '../../bin/two-key-map/RelationMap';
+import { RelationMap } from '@shared/map/RelationMap';
 
 export class ServerConn extends APIConn {
   playerVols: RelationMap<number> = new RelationMap();

@@ -1,5 +1,4 @@
 import { Socket } from 'socket.io';
-import { hasOwnProperty } from '../../bin/util';
 import { validateToken } from '../../bin/token/validate-token';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';

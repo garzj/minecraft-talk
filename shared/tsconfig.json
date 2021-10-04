@@ -3,7 +3,7 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "target": "es2015",
-    "lib": ["dom"],
+    "lib": ["es2017", "dom"],
     "types": ["node"],
     "typeRoots": ["../node_modules/@types"],
     "resolveJsonModule": true,

@@ -1,4 +1,4 @@
-import { hasOwnProperty } from '../util';
+import { hasOwnProperty } from '@shared/util';
 
 export type ForEachCallback<T> = (value: T, key1: string, key2: string) => void;
 

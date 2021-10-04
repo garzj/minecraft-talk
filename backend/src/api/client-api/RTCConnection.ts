@@ -1,16 +1,6 @@
-import { PlayerData } from '../../bin/PlayerData';
+import { RTCSetupData } from '@shared/types/rtc';
 import { AuthedClient } from './AuthedClient';
-import { genTurnUser, TurnUser } from './turn-server';
-
-interface RTCSetupData {
-  turnUser: TurnUser;
-  playerData: PlayerData;
-  volume: number;
-  to: {
-    playerData: PlayerData;
-    socketId: string;
-  };
-}
+import { genTurnUser } from './turn-server';
 
 export class RTCConnection {
   constructor(

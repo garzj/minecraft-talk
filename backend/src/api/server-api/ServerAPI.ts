@@ -1,5 +1,5 @@
-import { RelationMap } from '../../bin/two-key-map/RelationMap';
-import { hasOwnProperty } from '../../bin/util';
+import { RelationMap } from '@shared/map/RelationMap';
+import { hasOwnProperty } from '@shared/util';
 import { API } from '../API';
 import { APIManager } from '../APIManager';
 import { serverAPIAuthenticator } from './authenticator';

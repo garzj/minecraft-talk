@@ -1,9 +1,9 @@
-import { PlayerData } from '../../bin/PlayerData';
 import { Token } from '../../bin/token/Token';
 import { ClientConn } from './ClientConn';
 import { RTCConnection } from './RTCConnection';
 import { APIManager } from '../APIManager';
 import { dropTurnUser } from './turn-server';
+import { PlayerData } from '@shared/types/PlayerData';
 
 export class AuthedClient {
   emitVErr!: () => void;

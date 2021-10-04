@@ -1,5 +1,5 @@
-import { NestedMap } from '../../bin/two-key-map/NestedMap';
-import { RelationMap } from '../../bin/two-key-map/RelationMap';
+import { NestedMap } from '@shared/map/NestedMap';
+import { RelationMap } from '@shared/map/RelationMap';
 import { API } from '../API';
 import { APIManager } from '../APIManager';
 import { AuthedClient } from './AuthedClient';

@@ -1,11 +1,6 @@
 import { randomBytes } from 'crypto';
 import Turn = require('node-turn');
 
-export interface TurnUser {
-  username: string;
-  password: string;
-}
-
 const turnCreds: Map<string, string> = new Map();
 
 const turnServer = new Turn({
