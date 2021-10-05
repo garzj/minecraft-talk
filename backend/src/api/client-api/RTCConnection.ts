@@ -4,49 +4,49 @@ import { genTurnUser } from './turn-server';
 
 export class RTCConnection {
   constructor(
-    public client: AuthedClient,
-    public other: AuthedClient,
+    public client1: AuthedClient,
+    public client2: AuthedClient,
     public volume: number
   ) {
     this.getOffer();
   }
 
   destroy() {
-    if (!this.client.clientConn.socket.disconnected) {
-      this.client.clientConn.socket.emit('rtc-close', this.other.getSocketId());
+    if (!this.client1.conn.socket.disconnected) {
+      this.client1.conn.socket.emit('rtc-close', this.client2.getSocketId());
     }
-    if (!this.other.clientConn.socket.disconnected) {
-      this.other.clientConn.socket.emit('rtc-close', this.client.getSocketId());
+    if (!this.client2.conn.socket.disconnected) {
+      this.client2.conn.socket.emit('rtc-close', this.client1.getSocketId());
     }
   }
 
   updateVolume(volume: number) {
-    this.client.clientConn.socket.emit(
+    this.client1.conn.socket.emit(
       'rtc-update-vol',
-      this.client.getSocketId(),
+      this.client1.getSocketId(),
       volume
     );
-    this.other.clientConn.socket.emit(
+    this.client2.conn.socket.emit(
       'rtc-update-vol',
-      this.other.getSocketId(),
+      this.client2.getSocketId(),
       volume
     );
   }
 
   private getOffer() {
     const rtcSetupData: RTCSetupData = {
-      turnUser: genTurnUser(this.client.token.uuid),
+      turnUser: genTurnUser(this.client1.token.uuid),
       volume: this.volume,
       to: {
-        playerData: this.other.getPlayerData(),
-        socketId: this.other.getSocketId(),
+        playerData: this.client2.getPlayerData(),
+        socketId: this.client2.getSocketId(),
       },
     };
 
-    this.client.clientConn.socket.emit('rtc-create-offer', rtcSetupData);
+    this.client1.conn.socket.emit('rtc-create-offer', rtcSetupData);
 
-    this.client.clientConn.socket.on('rtc-offer', (offer: string) => {
-      if (typeof offer !== 'string') return this.client.emitVErr();
+    this.client1.conn.socket.on('rtc-offer', (offer: string) => {
+      if (typeof offer !== 'string') return this.client1.emitVErr();
 
       this.getAnswer(offer);
     });
@@ -54,27 +54,27 @@ export class RTCConnection {
 
   private getAnswer(offer: string) {
     const rtcSetupData: RTCSetupData = {
-      turnUser: genTurnUser(this.other.token.uuid),
+      turnUser: genTurnUser(this.client2.token.uuid),
       volume: this.volume,
       to: {
-        playerData: this.client.getPlayerData(),
-        socketId: this.client.getSocketId(),
+        playerData: this.client1.getPlayerData(),
+        socketId: this.client1.getSocketId(),
       },
     };
 
-    this.other.clientConn.socket.emit('rtc-create-answer', rtcSetupData, offer);
+    this.client2.conn.socket.emit('rtc-create-answer', rtcSetupData, offer);
 
-    this.other.clientConn.socket.on('rtc-answer', (answer: string) => {
-      if (typeof answer !== 'string') return this.other.emitVErr();
+    this.client2.conn.socket.on('rtc-answer', (answer: string) => {
+      if (typeof answer !== 'string') return this.client2.emitVErr();
 
       this.setAnswer(answer);
     });
   }
 
   private setAnswer(answer: string) {
-    this.client.clientConn.socket.emit(
+    this.client1.conn.socket.emit(
       'rtc-apply-answer',
-      this.other.getSocketId(),
+      this.client2.getSocketId(),
       answer
     );
   }
