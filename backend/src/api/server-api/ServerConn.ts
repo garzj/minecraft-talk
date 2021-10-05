@@ -4,6 +4,7 @@ import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
 import { Token } from '../../bin/token/Token';
 import { RelationMap } from '@shared/map/RelationMap';
+import { hasOwnProperty } from '@shared/util';
 
 export class ServerConn extends APIConn {
   playerVols: RelationMap<number> = new RelationMap();
@@ -15,6 +16,9 @@ export class ServerConn extends APIConn {
   }
 
   private updateVolume(uuid1: string, uuid2: string, volume: number) {
+    if (!hasOwnProperty(this.mgr.serverApi.talkingPlayers, uuid1)) return;
+    if (!hasOwnProperty(this.mgr.serverApi.talkingPlayers, uuid2)) return;
+
     if (volume === 0) {
       this.playerVols.unset(uuid1, uuid2);
     } else {

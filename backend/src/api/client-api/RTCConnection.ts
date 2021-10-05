@@ -21,6 +21,8 @@ export class RTCConnection {
   }
 
   updateVolume(volume: number) {
+    if (volume === this.volume) return;
+
     this.client1.conn.socket.emit(
       'rtc-update-vol',
       this.client1.getSocketId(),

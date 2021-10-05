@@ -1,21 +1,20 @@
 import { Token } from '../../bin/token/Token';
 import { ClientConn } from './ClientConn';
-import { RTCConnection } from './RTCConnection';
 import { APIManager } from '../APIManager';
-import { dropTurnUser } from './turn-server';
 import { PlayerData } from '@shared/types/PlayerData';
+import { hasOwnProperty } from '@shared/util';
 
 export class AuthedClient {
   emitVErr!: () => void;
 
   constructor(
     public mgr: APIManager,
-    public clientConn: ClientConn,
+    public conn: ClientConn,
     public token: Token
   ) {
     this.setupApi();
 
-    this.mgr.serverApi.joinTalk(this.token.uuid);
+    this.mgr.serverApi.addTalkingPlayer(this.token.uuid);
   }
 
   getPlayerData(): PlayerData {
@@ -23,35 +22,11 @@ export class AuthedClient {
   }
 
   getSocketId() {
-    return this.clientConn.socket.id;
-  }
-
-  setVolumeTo(other: AuthedClient, volume: number): void {
-    const rtcConns = this.mgr.clientApi.rtcConns;
-
-    const rtcConn = rtcConns.get(this.getSocketId(), other.getSocketId());
-
-    if (volume === 0) {
-      // Disconnect
-      if (!rtcConn) return;
-
-      rtcConns.unset(this.getSocketId(), other.getSocketId());
-      return rtcConn.destroy();
-    }
-
-    if (rtcConn) {
-      rtcConn.updateVolume(volume);
-    } else {
-      rtcConns.set(
-        this.getSocketId(),
-        other.getSocketId(),
-        new RTCConnection(this, other, volume)
-      );
-    }
+    return this.conn.socket.id;
   }
 
   private setupApi() {
-    const socket = this.clientConn.socket;
+    const socket = this.conn.socket;
 
     // Validation errors
     let message: string;
@@ -66,34 +41,52 @@ export class AuthedClient {
       socket.emit('set-player-data', this.getPlayerData());
     });
 
-    this.initVolumes();
+    socket.on('get-client-active', () => {
+      this.setActive(
+        this.isActive() ||
+          !hasOwnProperty(this.mgr.clientApi.activeClients, this.token.uuid)
+      );
+    });
+
+    socket.on('activate-client', () => this.isActive() || this.setActive(true));
   }
 
-  private initVolumes() {
-    // Update volumes to all connected clients
-    this.mgr.serverApi.playerVols.forEach(
-      this.token.uuid,
-      (volume, _, otherUuid) => {
-        this.mgr.clientApi.authedClients.forEach(otherUuid, (other) => {
-          this.setVolumeTo(other, volume);
-        });
+  private isActive() {
+    return this.mgr.clientApi.activeClients[this.token.uuid] === this;
+  }
+
+  private setActive(active: boolean) {
+    if (!active) {
+      if (this.isActive()) {
+        delete this.mgr.clientApi.activeClients[this.token.uuid];
       }
-    );
+
+      this.conn.socket.emit('set-client-active', false);
+    } else {
+      const clientApi = this.mgr.clientApi;
+      if (hasOwnProperty(clientApi.activeClients, this.token.uuid)) {
+        clientApi.activeClients[this.token.uuid].setActive(false);
+      }
+      clientApi.activeClients[this.token.uuid] = this;
+
+      this.conn.socket.emit('set-client-active', true);
+    }
+
+    this.mgr.serverApi.playerConns.forEach(this.token.uuid, (playerConn) => {
+      playerConn.updateConn();
+    });
   }
 
   logout() {
     // I know, the client could ignore this message,
     // but since i have no database to invalidate tokens
     // (because I'm lazy), there's no better way
-    this.clientConn.socket.emit('logout');
+    this.conn.socket.emit('logout');
   }
 
   destroy() {
-    this.mgr.clientApi.rtcConns.forEach(this.getSocketId(), (rtcConn) =>
-      rtcConn.destroy()
-    );
-    this.mgr.serverApi.leaveTalk(this.token.uuid);
+    this.setActive(false);
 
-    dropTurnUser(this.token.uuid);
+    this.mgr.serverApi.removeTalkingPlayer(this.token.uuid);
   }
 }

@@ -2,12 +2,14 @@ import { RelationMap } from '@shared/map/RelationMap';
 import { hasOwnProperty } from '@shared/util';
 import { API } from '../API';
 import { APIManager } from '../APIManager';
+import { dropTurnUser } from '../client-api/turn-server';
 import { serverAPIAuthenticator } from './authenticator';
+import { PlayerConnection } from './PlayerConnection';
 import { ServerConn } from './ServerConn';
 
 export class ServerAPI extends API<ServerConn> {
   talkingPlayers: { [uuid: string]: number } = {};
-  playerVols: RelationMap<number> = new RelationMap();
+  playerConns: RelationMap<PlayerConnection> = new RelationMap();
 
   constructor(mgr: APIManager) {
     super(mgr, 'server', ServerConn);
@@ -15,7 +17,7 @@ export class ServerAPI extends API<ServerConn> {
     this.nsp.use(serverAPIAuthenticator);
   }
 
-  public joinTalk(uuid: string) {
+  addTalkingPlayer(uuid: string) {
     if (!hasOwnProperty(this.talkingPlayers, uuid)) {
       this.talkingPlayers[uuid] = 1;
 
@@ -26,7 +28,7 @@ export class ServerAPI extends API<ServerConn> {
   }
 
   updateVolume(uuid1: string, uuid2: string) {
-    // Use loudest volume (of all servers that have these players connected)
+    // Get loudest volume (of all servers that have these players connected)
     let volume = 0;
     for (let server of this.apiConns) {
       const serverVolume = server.playerVols.get(uuid1, uuid2);
@@ -34,25 +36,40 @@ export class ServerAPI extends API<ServerConn> {
         volume = serverVolume;
       }
     }
-    if (this.playerVols.get(uuid1, uuid2) === volume) return;
-    this.playerVols.set(uuid1, uuid2, volume);
 
-    // Update volume from every uuid1's client to every uuid2's client
-    const authedClients = this.mgr.clientApi.authedClients;
-    authedClients.forEach(uuid1, (client1) => {
-      authedClients.forEach(uuid2, (client2) => {
-        client1.setVolumeTo(client2, volume);
-      });
-    });
+    // Update player connections
+    const playerConn = this.playerConns.get(uuid1, uuid2);
+    if (volume === 0) {
+      playerConn?.destroy();
+      this.playerConns.unset(uuid1, uuid2);
+      return;
+    }
+
+    if (!playerConn) {
+      this.playerConns.set(
+        uuid1,
+        uuid2,
+        new PlayerConnection(this.mgr, uuid1, uuid2, volume)
+      );
+    } else {
+      playerConn.updateVolume(volume);
+    }
   }
 
-  public leaveTalk(uuid: string) {
+  removeTalkingPlayer(uuid: string) {
     this.talkingPlayers[uuid]--;
 
     if (this.talkingPlayers[uuid] === 0) {
+      this.nsp.emit('talk', uuid, false);
+
       delete this.talkingPlayers[uuid];
 
-      this.nsp.emit('talk', uuid, false);
+      this.playerConns.forEach(uuid, (playerConn, _, otherUuid) => {
+        playerConn.destroy();
+        this.playerConns.unset(uuid, otherUuid);
+      });
+
+      dropTurnUser(uuid);
     }
   }
 }
