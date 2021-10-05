@@ -5,11 +5,12 @@ export interface TurnUserData {
   password: string;
 }
 
-export interface RTCSetupData {
+export interface RTCConnData {
+  initiator: boolean;
   turnUser: TurnUserData;
   volume: number;
   to: {
-    playerData: PlayerData;
+    player: PlayerData;
     socketId: string;
   };
 }

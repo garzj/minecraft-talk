@@ -1,23 +1,61 @@
-import { RTCSetupData } from '@shared/types/rtc';
+import { RTCConnData } from '@shared/types/rtc';
 import { AuthedClient } from './AuthedClient';
 import { genTurnUser } from './turn-server';
 
 export class RTCConnection {
+  listeners: {
+    client: AuthedClient;
+    event: string;
+    callback: (...args: any[]) => void;
+  }[] = [];
+
   constructor(
     public client1: AuthedClient,
     public client2: AuthedClient,
     public volume: number
   ) {
-    this.getOffer();
+    this.connect();
   }
 
-  destroy() {
-    if (!this.client1.conn.socket.disconnected) {
-      this.client1.conn.socket.emit('rtc-close', this.client2.getSocketId());
-    }
-    if (!this.client2.conn.socket.disconnected) {
-      this.client2.conn.socket.emit('rtc-close', this.client1.getSocketId());
-    }
+  private getRTCConnData(
+    client: AuthedClient,
+    other: AuthedClient,
+    initiator: boolean
+  ): RTCConnData {
+    return {
+      initiator,
+      turnUser: genTurnUser(client.token.uuid),
+      volume: this.volume,
+      to: {
+        player: other.getPlayerData(),
+        socketId: other.getSocketId(),
+      },
+    };
+  }
+
+  private connect() {
+    this.client1.conn.socket.emit(
+      'rtc-connect',
+      this.getRTCConnData(this.client1, this.client2, true)
+    );
+    this.client2.conn.socket.emit(
+      'rtc-connect',
+      this.getRTCConnData(this.client2, this.client1, false)
+    );
+
+    this.socketOn(this.client1, 'rtc-desc', (sdp: unknown) =>
+      this.client2.conn.socket.emit('rtc-desc', this.client1.getSocketId(), sdp)
+    );
+    this.socketOn(this.client2, 'rtc-desc', (sdp: unknown) =>
+      this.client1.conn.socket.emit('rtc-desc', this.client2.getSocketId(), sdp)
+    );
+
+    this.socketOn(this.client1, 'rtc-ice', (ice: unknown) =>
+      this.client2.conn.socket.emit('rtc-ice', this.client1.getSocketId(), ice)
+    );
+    this.socketOn(this.client2, 'rtc-ice', (ice: unknown) =>
+      this.client1.conn.socket.emit('rtc-ice', this.client2.getSocketId(), ice)
+    );
   }
 
   updateVolume(volume: number) {
@@ -35,49 +73,35 @@ export class RTCConnection {
     );
   }
 
-  private getOffer() {
-    const rtcSetupData: RTCSetupData = {
-      turnUser: genTurnUser(this.client1.token.uuid),
-      volume: this.volume,
-      to: {
-        playerData: this.client2.getPlayerData(),
-        socketId: this.client2.getSocketId(),
-      },
-    };
-
-    this.client1.conn.socket.emit('rtc-create-offer', rtcSetupData);
-
-    this.client1.conn.socket.on('rtc-offer', (offer: string) => {
-      if (typeof offer !== 'string') return this.client1.emitVErr();
-
-      this.getAnswer(offer);
-    });
+  private disconnect() {
+    if (!this.client1.conn.socket.disconnected) {
+      this.client1.conn.socket.emit(
+        'rtc-disconnect',
+        this.client2.getSocketId()
+      );
+    }
+    if (!this.client2.conn.socket.disconnected) {
+      this.client2.conn.socket.emit(
+        'rtc-disconnect',
+        this.client1.getSocketId()
+      );
+    }
   }
 
-  private getAnswer(offer: string) {
-    const rtcSetupData: RTCSetupData = {
-      turnUser: genTurnUser(this.client2.token.uuid),
-      volume: this.volume,
-      to: {
-        playerData: this.client1.getPlayerData(),
-        socketId: this.client1.getSocketId(),
-      },
-    };
-
-    this.client2.conn.socket.emit('rtc-create-answer', rtcSetupData, offer);
-
-    this.client2.conn.socket.on('rtc-answer', (answer: string) => {
-      if (typeof answer !== 'string') return this.client2.emitVErr();
-
-      this.setAnswer(answer);
-    });
+  private socketOn(
+    client: AuthedClient,
+    event: string,
+    callback: (...args: any[]) => void
+  ) {
+    this.listeners.push({ client, event, callback });
+    client.conn.socket.on(event, callback);
   }
 
-  private setAnswer(answer: string) {
-    this.client1.conn.socket.emit(
-      'rtc-apply-answer',
-      this.client2.getSocketId(),
-      answer
-    );
+  destroy() {
+    for (const listener of this.listeners) {
+      listener.client.conn.socket.off(listener.event, listener.callback);
+    }
+
+    this.disconnect();
   }
 }
