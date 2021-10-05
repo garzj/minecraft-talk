@@ -17,8 +17,6 @@ export abstract class API<TAPIConn extends APIConn> {
       const apiConn = new APIConnClass(this.mgr, socket);
       this.apiConns.add(apiConn);
 
-      socket.on('error', () => console.log(`Socket error: ${socket.id}`));
-
       socket.on('disconnect', () => {
         apiConn.onDisconnect?.();
         this.apiConns.delete(apiConn);
