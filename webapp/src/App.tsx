@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { ProvideAudio } from './context/audio';
 import { ProvideAuth } from './context/auth';
-import { ProvideVoice } from './context/voice';
 import { ErrorAlert } from './public/error/ErrorAlert';
 import { SocketError } from './public/error/SocketError';
 
@@ -19,7 +19,9 @@ export const App: React.FC = () => {
           <Switch>
             <Route exact path='/'>
               <ProvideAuth>
+                <ProvideAudio>
                   <Talk></Talk>
+                </ProvideAudio>
               </ProvideAuth>
             </Route>
             <Route exact path='/expired' component={Expired} />
