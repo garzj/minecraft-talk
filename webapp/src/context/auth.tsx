@@ -1,3 +1,4 @@
+import { useErrorAlert } from '@/public/error/ErrorAlert';
 import { PlayerData } from '@shared/types/PlayerData';
 import React, {
   useState,
@@ -31,19 +32,35 @@ export const ProvideAuth: React.FC = ({ children }) => {
   }, [history]);
   useSubSocket('logout', onLogout);
 
-  // Login
+  // Auth data
+  useSubSocket(
+    'set-player-data',
+    useCallback((player: PlayerData) => setAuth(player), [setAuth])
+  );
   useEffect(() => {
     socket.emit('get-player-data');
   }, []);
-  useSubSocket(
-    'player-data',
-    useCallback((player: PlayerData) => setAuth(player), [setAuth])
+
+  // Activeness
+  const [, , setActiveErr] = useErrorAlert({
+    index: 250,
+    msg: 'Another client is currently active.',
+    btn: {
+      msg: 'Talk here',
+      onClick: useCallback(() => socket.emit('activate-client'), []),
+    },
+  });
+  const onActiveChange = useCallback(
+    (active: boolean) => setActiveErr(!active),
+    [setActiveErr]
   );
+  useSubSocket('set-client-active', onActiveChange);
+  useEffect(() => {
+    socket.emit('get-client-active');
+  }, []);
 
   return (
-    <authContext.Provider value={auth}>
-      {auth ? children : null}
-    </authContext.Provider>
+    <authContext.Provider value={auth}>{auth && children}</authContext.Provider>
   );
 };
 

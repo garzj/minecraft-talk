@@ -1,9 +1,13 @@
 import { useEffect } from 'react';
 import { socket } from '../../bin/socket';
-import { useErrorAlert } from './ErrorAlerts';
+import { useErrorAlert } from './ErrorAlert';
 
 export const SocketError: React.FC = () => {
-  const [addError, removeError] = useErrorAlert('socket', 'Reconnecting...');
+  const [addError, removeError] = useErrorAlert({
+    index: 0,
+    msg: 'Reconnecting...',
+    loadingIcon: true,
+  });
 
   useEffect(() => {
     socket.on('connect_error', addError);

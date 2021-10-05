@@ -1,8 +1,8 @@
-import './App.scss';
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ProvideAuth } from './context/auth';
-import { ErrorAlerts } from './public/error/ErrorAlerts';
+import { ProvideVoice } from './context/voice';
+import { ErrorAlert } from './public/error/ErrorAlert';
 import { SocketError } from './public/error/SocketError';
 
 const NotFound = lazy(() => import('./public/NotFound'));
@@ -14,19 +14,19 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Suspense fallback={'Loading...'}>
-        <ErrorAlerts>
+        <ErrorAlert>
           <SocketError></SocketError>
           <Switch>
             <Route exact path='/'>
               <ProvideAuth>
-                <Talk></Talk>
+                  <Talk></Talk>
               </ProvideAuth>
             </Route>
             <Route exact path='/expired' component={Expired} />
             <Route exact path='/logout' component={Logout} />
             <Route component={NotFound} />
           </Switch>
-        </ErrorAlerts>
+        </ErrorAlert>
       </Suspense>
     </BrowserRouter>
   );

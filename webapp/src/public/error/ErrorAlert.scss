@@ -1,0 +1,42 @@
+.error-alert-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: #00000030;
+}
+
+.error-alert-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  border: 1px solid black;
+  padding: 5px;
+}
+
+.error-alert {
+  padding: 30px;
+  background: whitesmoke;
+  text-align: center;
+  font-size: 1rem;
+
+  position: relative;
+
+  .loading-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #555;
+    border-right: 3px solid #555;
+
+    animation: spin 2s linear infinite;
+  }
+}
