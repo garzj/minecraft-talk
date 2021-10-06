@@ -43,19 +43,23 @@ export class RTCConnection {
       this.getRTCConnData(this.client2, this.client1, false)
     );
 
-    this.socketOn(this.client1, 'rtc-desc', (sdp: unknown) =>
-      this.client2.conn.socket.emit('rtc-desc', this.client1.getSocketId(), sdp)
-    );
-    this.socketOn(this.client2, 'rtc-desc', (sdp: unknown) =>
-      this.client1.conn.socket.emit('rtc-desc', this.client2.getSocketId(), sdp)
-    );
-
-    this.socketOn(this.client1, 'rtc-ice', (ice: unknown) =>
-      this.client2.conn.socket.emit('rtc-ice', this.client1.getSocketId(), ice)
-    );
-    this.socketOn(this.client2, 'rtc-ice', (ice: unknown) =>
-      this.client1.conn.socket.emit('rtc-ice', this.client2.getSocketId(), ice)
-    );
+    // Reemit messages between clients
+    for (const event of ['rtc-desc', 'rtc-ice', 'rtc-err']) {
+      this.socketOn(this.client1, event, (...args: unknown[]) =>
+        this.client2.conn.socket.emit(
+          event,
+          this.client1.getSocketId(),
+          ...args
+        )
+      );
+      this.socketOn(this.client2, event, (...args: unknown[]) =>
+        this.client1.conn.socket.emit(
+          event,
+          this.client2.getSocketId(),
+          ...args
+        )
+      );
+    }
   }
 
   updateVolume(volume: number) {

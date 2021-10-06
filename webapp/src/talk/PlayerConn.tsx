@@ -17,11 +17,13 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
   const [error, setError] = useState<unknown>(null);
   useEffect(() => {
     if (error !== null) {
-      console.warn(`RTC to ${conn.to.player}:`, error);
+      console.warn(`RTC to ${conn.to.player.uuid} failed:`, error);
 
-      // TODO: Emit error to other
+      socket.emit('rtc-err');
     }
   }, [error, conn.to.player]);
+  const onRtcErr = useCallback(() => setError('The other client errored.'), []);
+  useSubSocket('rtc-err', onRtcErr);
 
   // RTC Connection
   const [rtc] = useState(() => createPeerConnection(conn.turnUser));
@@ -62,7 +64,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
       if (conn.to.socketId !== socketId) return;
 
       try {
-        rtc.addIceCandidate(new RTCIceCandidate(ice)).catch(setError);
+        rtc.addIceCandidate(new RTCIceCandidate(ice)).catch(console.warn);
       } catch (e) {}
     },
     [rtc, conn]
