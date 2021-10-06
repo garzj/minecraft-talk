@@ -18,28 +18,45 @@ export const ProvideAudio: React.FC = ({ children }) => {
     const requestAudioStream = () => {
       if (cleared) return;
 
-      navigator.mediaDevices
-        .getUserMedia({ audio: true, video: false })
-        .then((stream) => {
-          !cleared && setStream(stream);
-          removeMicError();
-        })
-        .catch(addMicError);
+      const constraints: MediaStreamConstraints = { audio: true, video: false };
+      const successCallback: (stream: MediaStream) => void = (stream) => {
+        !cleared && setStream(stream);
+        removeMicError();
+      };
+
+      if (navigator.mediaDevices) {
+        navigator.mediaDevices
+          .getUserMedia(constraints)
+          .then(successCallback)
+          .catch(addMicError);
+      } else {
+        navigator.getUserMedia =
+          navigator.getUserMedia ||
+          navigator.webkitGetUserMedia ||
+          navigator.mozGetUserMedia ||
+          navigator.msGetUserMedia;
+
+        navigator.getUserMedia(constraints, successCallback, addMicError);
+      }
     };
 
-    // Audio permission
+    // Auto update permissions
     let permissionStatus: PermissionStatus | null = null;
 
-    navigator.permissions
-      .query({ name: 'microphone' as PermissionName })
-      .then((status) => {
-        permissionStatus = status;
-        requestAudioStream();
-        status.addEventListener('change', requestAudioStream);
-      })
-      .catch(() => {
-        requestAudioStream();
-      });
+    if (navigator.permissions) {
+      navigator.permissions
+        .query({ name: 'microphone' as PermissionName })
+        .then((status) => {
+          permissionStatus = status;
+          requestAudioStream();
+          status.addEventListener('change', requestAudioStream);
+        })
+        .catch(() => {
+          requestAudioStream();
+        });
+    } else {
+      requestAudioStream();
+    }
 
     return () => {
       permissionStatus?.removeEventListener('change', requestAudioStream);
