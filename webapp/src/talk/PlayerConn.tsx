@@ -5,8 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPeerConnection } from './create-peer-conn';
 import { ListPlayer } from './ListPlayer';
 
-// TODO: Update volumes
-
 interface Props {
   conn: RTCConnData;
 }
