@@ -1,18 +1,37 @@
+import { useSubSocket } from '@/bin/socket';
+import { RTCConnData } from '@shared/types/rtc';
+import { useCallback, useState } from 'react';
 import { useAuth } from '../context/auth';
 import { ListPlayer } from './ListPlayer';
+import { PlayerConn } from './PlayerConn';
 import './Talk.scss';
 
 const Talk: React.FC = () => {
+  const [conns, setConns] = useState<{ [socketId: string]: RTCConnData }>({});
+
   const auth = useAuth();
 
-  if (!auth) {
-    return <div>Connecting...</div>;
-  }
+  // RTC connections
+  const onRtcConnect = useCallback((connData: RTCConnData) => {
+    setConns((conns) => ({ ...conns, [connData.to.socketId]: connData }));
+  }, []);
+  useSubSocket('rtc-connect', onRtcConnect);
+
+  const onRtcDisconnect = useCallback((socketId: string) => {
+    setConns((conns) => {
+      const newConns = { ...conns };
+      delete newConns[socketId];
+      return newConns;
+    });
+  }, []);
+  useSubSocket('rtc-disconnect', onRtcDisconnect);
 
   return (
     <div className='player-list'>
-      <ListPlayer player={auth}></ListPlayer>
-      {/* TODO: Other players */}
+      <ListPlayer player={auth} />
+      {Object.values(conns).map((conn) => (
+        <PlayerConn key={conn.to.socketId} conn={conn} />
+      ))}
     </div>
   );
 };
