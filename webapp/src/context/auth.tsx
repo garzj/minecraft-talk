@@ -64,4 +64,10 @@ export const ProvideAuth: React.FC = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(authContext);
+export const useAuth = () => {
+  const auth = useContext(authContext);
+  if (!auth) {
+    throw new Error('useAuth can only be called inside ProvideAuth');
+  }
+  return auth;
+};
