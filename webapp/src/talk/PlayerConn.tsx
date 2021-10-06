@@ -13,6 +13,7 @@ interface Props {
 
 export const PlayerConn: React.FC<Props> = ({ conn }) => {
   const audio = useRef<HTMLAudioElement | null>(null);
+  const [volume, setVolume] = useState(() => conn.volume);
 
   // Error handling
   const [error, setError] = useState<unknown>(null);
@@ -123,6 +124,22 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
         .catch(setError);
     }
   }, [rtc, conn, createdDesc]);
+
+  // Receive volume updates
+  const onUpdateVol = useCallback(
+    (socketId: string, volume: number) => {
+      if (conn.to.socketId !== socketId) return;
+
+      setVolume(volume);
+    },
+    [conn]
+  );
+  useSubSocket('rtc-update-vol', onUpdateVol);
+
+  useEffect(() => {
+    if (!audio.current) return;
+    audio.current.volume = volume;
+  }, [volume]);
 
   return (
     <>
