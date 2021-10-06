@@ -63,12 +63,12 @@ export class RTCConnection {
 
     this.client1.conn.socket.emit(
       'rtc-update-vol',
-      this.client1.getSocketId(),
+      this.client2.getSocketId(),
       volume
     );
     this.client2.conn.socket.emit(
       'rtc-update-vol',
-      this.client2.getSocketId(),
+      this.client1.getSocketId(),
       volume
     );
   }
