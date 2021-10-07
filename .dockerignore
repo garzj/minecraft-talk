@@ -1,0 +1,28 @@
+# Docker data
+**/data/
+
+# Build
+**/build/
+
+# Env files
+**/.env
+
+# Deps
+**/node_modules/
+**/.yarn/
+**/.pnp
+**/.pnp.*
+
+# Log files
+**/debug.log*
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+
+# IDEs
+**/.vscode/
+
+# MacOS
+**/.DS_Store
+**/.AppleDouble

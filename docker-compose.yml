@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  app:
+    container_name: minecraft-talk
+    image: garzj/minecraft-talk
+    build: .
+    ports:
+      - 8082:3030
+      - 3478:3478
+    volumes:
+      - ./data:/app/server/data
+    environment:
+      CONVERSATION_SECRET: LhKB7U1svggGYx7ZGaLb
+      TOKEN_SECRET: eum4Yqm65TndzWLJr0Br
+      ORIGIN: http://localhost:8082/
