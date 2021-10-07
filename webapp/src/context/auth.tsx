@@ -55,8 +55,10 @@ export const ProvideAuth: React.FC = ({ children }) => {
     [setActiveErr]
   );
   useSubSocket('set-client-active', onActiveChange);
+
+  // Trigger init
   useEffect(() => {
-    socket.emit('get-client-active');
+    socket.emit('init-talk');
   }, []);
 
   return (

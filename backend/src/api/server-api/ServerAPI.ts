@@ -27,6 +27,12 @@ export class ServerAPI extends API<ServerConn> {
     }
   }
 
+  updateConns(uuid: string) {
+    this.playerConns.forEach(uuid, (playerConn) => {
+      playerConn.updateConn();
+    });
+  }
+
   updateVolume(uuid1: string, uuid2: string) {
     // Get loudest volume (of all servers that have these players connected)
     let volume = 0;

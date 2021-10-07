@@ -41,11 +41,13 @@ export class AuthedClient {
       socket.emit('set-player-data', this.getPlayerData());
     });
 
-    socket.on('get-client-active', () => {
+    socket.on('init-talk', () => {
       this.setActive(
         this.isActive() ||
           !hasOwnProperty(this.mgr.clientApi.activeClients, this.token.uuid)
       );
+
+      this.mgr.serverApi.updateConns(this.token.uuid);
     });
 
     socket.on('activate-client', () => this.isActive() || this.setActive(true));
