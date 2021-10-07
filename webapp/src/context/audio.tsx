@@ -18,7 +18,12 @@ export const ProvideAudio: React.FC = ({ children }) => {
     const requestAudioStream = () => {
       if (cleared) return;
 
-      const constraints: MediaStreamConstraints = { audio: true, video: false };
+      const constraints: MediaStreamConstraints = {
+        audio: {
+          echoCancellation: true,
+        },
+        video: false,
+      };
       const successCallback: (stream: MediaStream) => void = (stream) => {
         !cleared && setStream(stream);
         removeMicError();
