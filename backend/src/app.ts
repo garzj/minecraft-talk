@@ -8,9 +8,9 @@ import * as Http from 'http';
 const server = Http.createServer(app);
 
 import { APIManager } from './api/APIManager';
-const apiMgr = new APIManager(server);
+new APIManager(server);
 
 import { Web } from './web/Web';
-const web = new Web(server, app, apiMgr);
+const web = new Web(server, app);
 
 web.start();

@@ -1,8 +1,8 @@
-import { Web } from '../Web';
+import { Application } from 'express';
 import { loginRouter } from './login';
 import { webAppRouter } from './webapp';
 
-export function applyRoutes(web: Web) {
-  web.app.use(loginRouter);
-  web.app.use(webAppRouter);
+export function applyRoutes(app: Application) {
+  app.use(loginRouter);
+  app.use(webAppRouter);
 }

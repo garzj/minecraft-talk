@@ -1,10 +1,10 @@
-import { Socket } from 'socket.io';
-import { signObj } from '../../bin/sign-obj';
-import { APIConn } from '../APIConn';
-import { APIManager } from '../APIManager';
-import { Token } from '../../bin/token/Token';
+import { signObj } from '@/bin/sign-obj';
+import { Token } from '@/bin/token/Token';
 import { RelationMap } from '@shared/map/RelationMap';
 import { hasOwnProperty } from '@shared/util';
+import { Socket } from 'socket.io';
+import { APIConn } from '../APIConn';
+import { APIManager } from '../APIManager';
 
 export class ServerConn extends APIConn {
   playerVols: RelationMap<number> = new RelationMap();

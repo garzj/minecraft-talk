@@ -1,22 +1,13 @@
 import { applyMiddleware } from './middleware';
-import { APIManager } from '../api/APIManager';
 import { Application } from 'express';
 import { applyRoutes } from './routes';
 import { Server } from 'http';
 
 export class Web {
-  server: Server;
-  app: Application;
-  apiMgr: APIManager;
-
-  constructor(server: Server, app: Application, apiMgr: APIManager) {
-    this.server = server;
-    this.app = app;
-    this.apiMgr = apiMgr;
-
+  constructor(public server: Server, public app: Application) {
     applyMiddleware(this.app);
 
-    applyRoutes(this);
+    applyRoutes(this.app);
   }
 
   start() {

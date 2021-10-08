@@ -1,9 +1,9 @@
+import { validateToken } from '@/bin/token/validate-token';
 import { Socket } from 'socket.io';
-import { validateToken } from '../../bin/token/validate-token';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
-import { clientAPIAuthenticator } from './authenticator';
 import { AuthedClient } from './AuthedClient';
+import { clientAPIAuthenticator } from './authenticator';
 
 export class ClientConn extends APIConn {
   authedClient?: AuthedClient;

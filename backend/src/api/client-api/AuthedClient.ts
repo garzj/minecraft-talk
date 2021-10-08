@@ -1,8 +1,8 @@
-import { Token } from '../../bin/token/Token';
-import { ClientConn } from './ClientConn';
-import { APIManager } from '../APIManager';
+import { Token } from '@/bin/token/Token';
 import { PlayerData } from '@shared/types/PlayerData';
 import { hasOwnProperty } from '@shared/util';
+import { APIManager } from '../APIManager';
+import { ClientConn } from './ClientConn';
 
 export class AuthedClient {
   emitVErr!: () => void;
