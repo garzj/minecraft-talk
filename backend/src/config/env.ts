@@ -5,19 +5,25 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: 'development' | 'production' | 'test';
-      CONVERSATION_SECRET: string;
-      TOKEN_SECRET: string;
       PORT: string;
       ORIGIN: string;
+      CONVERSATION_SECRET: string;
+      TOKEN_SECRET: string;
     }
   }
 }
 
 process.env.NODE_ENV ??= 'production';
 process.env.PORT ??= '3030';
-process.env.CONVERSATION_SECRET ??= 'LhKB7U1svggGYx7ZGaLb';
-process.env.TOKEN_SECRET ??= 'eum4Yqm65TndzWLJr0Br';
-process.env.ORIGIN ??= 'http://localhost:3000/';
 
-// Ensure exactly one trailing /
+process.env.ORIGIN ??= 'http://localhost:3000/';
 process.env.ORIGIN = process.env.ORIGIN.replace(/\/*$/, '/');
+
+if (process.env.CONVERSATION_SECRET === undefined) {
+  console.error('Please specify a CONVERSATION_SECRET.');
+  process.exit(1);
+}
+if (process.env.TOKEN_SECRET === undefined) {
+  console.error('Please specify a TOKEN_SECRET.');
+  process.exit(1);
+}
