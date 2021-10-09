@@ -16,7 +16,10 @@ export class RelationMap<T> extends TwoKeyMap<T> {
 
   unset(key1: string, key2?: string): void {
     if (key2 === undefined) {
-      const key2s = Object.keys(this.map[key1]);
+      let key2s: string[] = [];
+      if (hasOwnProperty(this.map, key1)) {
+        key2s = Object.keys(this.map[key1]);
+      }
       delete this.map[key1];
 
       for (let key2 of key2s) {
