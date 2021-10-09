@@ -201,7 +201,10 @@ public class MinecraftTalkAPI implements Listener {
           }
 
           connsToRemove.add(conn.getUniqueId());
-          talkingPlayers.get(conn.getUniqueId()).conns.remove(player.getUniqueId());
+          TalkingPlayer otherPlayer = talkingPlayers.get(conn.getUniqueId());
+          if (otherPlayer != null) {
+            otherPlayer.conns.remove(player.getUniqueId());
+          }
         }
       }
       for (UUID uuid : connsToRemove) {
