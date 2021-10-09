@@ -1,6 +1,6 @@
-import { socket, useSubSocket } from '@/bin/socket';
+import { socketEmit, useSocketLoader, useSocketOn } from '@/bin/socket';
 import { RTCConnData } from '@shared/types/rtc';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useAuth } from '../context/auth';
 import { ListPlayer } from './ListPlayer';
 import { PlayerConn } from './PlayerConn';
@@ -15,7 +15,7 @@ const Talk: React.FC = () => {
   const onRtcConnect = useCallback((connData: RTCConnData) => {
     setConns((conns) => ({ ...conns, [connData.to.socketId]: connData }));
   }, []);
-  useSubSocket('rtc-connect', onRtcConnect);
+  useSocketOn('rtc-connect', onRtcConnect);
 
   const onRtcDisconnect = useCallback((socketId: string) => {
     setConns((conns) => {
@@ -24,12 +24,16 @@ const Talk: React.FC = () => {
       return newConns;
     });
   }, []);
-  useSubSocket('rtc-disconnect', onRtcDisconnect);
+  useSocketOn('rtc-disconnect', onRtcDisconnect);
 
   // Init talk
-  useEffect(() => {
-    socket.emit('init-talk');
-  }, []);
+  useSocketLoader(
+    useCallback(() => {
+      socketEmit('init-talk');
+
+      return () => setConns({});
+    }, [])
+  );
 
   return (
     <div className='player-list'>

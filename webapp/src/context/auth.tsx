@@ -1,15 +1,9 @@
 import { useErrorAlert } from '@/public/error/ErrorAlert';
 import { PlayerData } from '@shared/types/PlayerData';
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  createContext,
-  useCallback,
-} from 'react';
+import React, { useState, useContext, createContext, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
 import { clearCookie } from '../bin/cookies';
-import { socket, useSubSocket } from '../bin/socket';
+import { socketEmit, useSocketLoader, useSocketOn } from '../bin/socket';
 
 type Auth = PlayerData | null;
 
@@ -24,22 +18,24 @@ export const ProvideAuth: React.FC = ({ children }) => {
     clearCookie('token');
     history.push('/expired');
   }, [history]);
-  useSubSocket('token-expired', onTokenExpired);
+  useSocketOn('token-expired', onTokenExpired);
 
   // Forced logout
   const onLogout = useCallback(() => {
     history.push('/logout');
   }, [history]);
-  useSubSocket('logout', onLogout);
+  useSocketOn('logout', onLogout);
 
   // Auth data
-  useSubSocket(
+  useSocketOn(
     'set-player-data',
     useCallback((player: PlayerData) => setAuth(player), [setAuth])
   );
-  useEffect(() => {
-    socket.emit('get-player-data');
-  }, []);
+  useSocketLoader(
+    useCallback(() => {
+      socketEmit('get-player-data');
+    }, [])
+  );
 
   // Activeness
   const [, , setActiveErr] = useErrorAlert({
@@ -47,18 +43,20 @@ export const ProvideAuth: React.FC = ({ children }) => {
     msg: 'Another client is currently active.',
     btn: {
       msg: 'Talk here',
-      onClick: useCallback(() => socket.emit('activate-client'), []),
+      onClick: useCallback(() => socketEmit('activate-client'), []),
     },
   });
   const onActiveChange = useCallback(
     (active: boolean) => setActiveErr(!active),
     [setActiveErr]
   );
-  useSubSocket('set-client-active', onActiveChange);
+  useSocketOn('set-client-active', onActiveChange);
 
-  useEffect(() => {
-    socket.emit('init-client-active');
-  }, []);
+  useSocketLoader(
+    useCallback(() => {
+      socketEmit('init-client-active');
+    }, [])
+  );
 
   return (
     <authContext.Provider value={auth}>{auth && children}</authContext.Provider>

@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { socket } from '../../bin/socket';
+import { useSocketOn } from '../../bin/socket';
 import { useErrorAlert } from './ErrorAlert';
 
 export const SocketError: React.FC = () => {
@@ -9,15 +8,13 @@ export const SocketError: React.FC = () => {
     loadingIcon: true,
   });
 
-  useEffect(() => {
-    socket.on('connect_error', addError);
-    socket.on('connect_failed', addError);
-    socket.on('reconnect_error', addError);
-    socket.on('reconnect_failed', addError);
+  useSocketOn('connect_error', addError);
+  useSocketOn('connect_failed', addError);
+  useSocketOn('reconnect_error', addError);
+  useSocketOn('reconnect_failed', addError);
 
-    socket.on('connect', removeError);
-    socket.on('reconnect', removeError);
-  }, [addError, removeError]);
+  useSocketOn('connect', removeError);
+  useSocketOn('reconnect', removeError);
 
   return null;
 };

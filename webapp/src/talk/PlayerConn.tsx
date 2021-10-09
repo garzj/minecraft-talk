@@ -1,4 +1,4 @@
-import { socket, useSubSocket } from '@/bin/socket';
+import { socketEmit, useSocketOn } from '@/bin/socket';
 import { useAudioStream } from '@/context/audio';
 import { RTCConnData } from '@shared/types/rtc';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -19,11 +19,11 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
     if (error !== null) {
       console.warn(`RTC to ${conn.to.player.uuid} failed:`, error);
 
-      socket.emit('rtc-err');
+      socketEmit('rtc-err');
     }
   }, [error, conn.to.player]);
   const onRtcErr = useCallback(() => setError('The other client errored.'), []);
-  useSubSocket('rtc-err', onRtcErr);
+  useSocketOn('rtc-err', onRtcErr);
 
   // RTC Connection
   const [rtc] = useState(() => createPeerConnection(conn.turnUser));
@@ -57,7 +57,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
   // Emit ICE candidates
   useEffect(() => {
     rtc.onicecandidate = (e) => {
-      socket.emit('rtc-ice', e.candidate);
+      socketEmit('rtc-ice', e.candidate);
     };
   }, [rtc]);
 
@@ -72,7 +72,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
     },
     [rtc, conn]
   );
-  useSubSocket('rtc-ice', onIceCand);
+  useSocketOn('rtc-ice', onIceCand);
 
   // Apply / Send created local descs
   const createdDesc = useCallback(
@@ -80,7 +80,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
       rtc
         .setLocalDescription(sdp)
         .then(() => {
-          socket.emit('rtc-desc', rtc.localDescription);
+          socketEmit('rtc-desc', rtc.localDescription);
         })
         .catch(setError);
     },
@@ -113,7 +113,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
     },
     [rtc, conn, createdDesc]
   );
-  useSubSocket('rtc-desc', onRtcDesc);
+  useSocketOn('rtc-desc', onRtcDesc);
 
   // Create offer if initiator
   useEffect(() => {
@@ -137,7 +137,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
     },
     [conn]
   );
-  useSubSocket('rtc-update-vol', onUpdateVol);
+  useSocketOn('rtc-update-vol', onUpdateVol);
 
   useEffect(() => {
     if (!audio.current) return;

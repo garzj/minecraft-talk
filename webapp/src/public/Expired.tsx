@@ -1,16 +1,18 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
-import { socket, useSubSocket } from '../bin/socket';
+import { socketEmit, useSocketLoader, useSocketOn } from '../bin/socket';
 
 const Expired: React.FC = () => {
   const history = useHistory();
 
   const onLoggedIn = useCallback(() => history.push('/'), [history]);
-  useSubSocket('logged-in', onLoggedIn);
+  useSocketOn('logged-in', onLoggedIn);
 
-  useEffect(() => {
-    socket.emit('check-token');
-  }, []);
+  useSocketLoader(
+    useCallback(() => {
+      socketEmit('check-token');
+    }, [])
+  );
 
   return (
     <div>
