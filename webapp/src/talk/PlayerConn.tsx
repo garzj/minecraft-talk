@@ -27,6 +27,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
 
   // RTC Connection
   const [rtc] = useState(() => createPeerConnection(conn.turnUser));
+  useEffect(() => () => rtc.close(), [rtc]);
 
   // Apply remote audio
   const [remoteStream] = useState(() => new MediaStream());
@@ -45,6 +46,8 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
       rtc.addTrack(track);
     }
     return () => {
+      if (rtc.connectionState === 'closed') return;
+
       for (const sender of rtc.getSenders()) {
         rtc.removeTrack(sender);
       }

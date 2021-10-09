@@ -2,7 +2,7 @@ import { RTCConnData } from '@shared/types/rtc';
 import { AuthedClient } from './AuthedClient';
 import { genTurnUser } from './turn-server';
 
-export class RTCConnection {
+export class ClientConnection {
   listeners: {
     client: AuthedClient;
     event: string;
@@ -18,17 +18,17 @@ export class RTCConnection {
   }
 
   private getRTCConnData(
-    client: AuthedClient,
-    other: AuthedClient,
+    from: AuthedClient,
+    to: AuthedClient,
     initiator: boolean
   ): RTCConnData {
     return {
       initiator,
-      turnUser: genTurnUser(client.token.uuid),
+      turnUser: genTurnUser(from.token.uuid),
       volume: this.volume,
       to: {
-        player: other.getPlayerData(),
-        socketId: other.getSocketId(),
+        player: to.getPlayerData(),
+        socketId: to.getSocketId(),
       },
     };
   }
@@ -64,6 +64,7 @@ export class RTCConnection {
 
   updateVolume(volume: number) {
     if (volume === this.volume) return;
+    this.volume = volume;
 
     this.client1.conn.socket.emit(
       'rtc-update-vol',
@@ -78,18 +79,8 @@ export class RTCConnection {
   }
 
   private disconnect() {
-    if (!this.client1.conn.socket.disconnected) {
-      this.client1.conn.socket.emit(
-        'rtc-disconnect',
-        this.client2.getSocketId()
-      );
-    }
-    if (!this.client2.conn.socket.disconnected) {
-      this.client2.conn.socket.emit(
-        'rtc-disconnect',
-        this.client1.getSocketId()
-      );
-    }
+    this.client1.conn.socket.emit('rtc-disconnect', this.client2.getSocketId());
+    this.client2.conn.socket.emit('rtc-disconnect', this.client1.getSocketId());
   }
 
   private socketOn(

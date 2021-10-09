@@ -1,10 +1,12 @@
 import { Token } from '@/bin/token/Token';
 import { PlayerData } from '@shared/types/PlayerData';
-import { hasOwnProperty } from '@shared/util';
 import { APIManager } from '../APIManager';
 import { ClientConn } from './ClientConn';
+import { dropTurnUser } from './turn-server';
 
 export class AuthedClient {
+  talkInitialized = false;
+
   emitVErr!: () => void;
 
   constructor(
@@ -13,8 +15,6 @@ export class AuthedClient {
     public token: Token
   ) {
     this.setupApi();
-
-    this.mgr.serverApi.addTalkingPlayer(this.token.uuid);
   }
 
   getPlayerData(): PlayerData {
@@ -36,47 +36,73 @@ export class AuthedClient {
     });
     this.emitVErr = () => socket.emit('validation-error', message);
 
-    // API
+    // Player data
     socket.on('get-player-data', () => {
       socket.emit('set-player-data', this.getPlayerData());
     });
 
+    // Activeness
+    socket.on('init-client-active', () =>
+      this.setActive(!this.mgr.clientApi.activeClients.has(this.token.uuid))
+    );
+
+    socket.on(
+      'activate-client',
+      () => !this.isActive() && this.setActive(true)
+    );
+
+    // Talk
     socket.on('init-talk', () => {
-      this.setActive(
-        this.isActive() ||
-          !hasOwnProperty(this.mgr.clientApi.activeClients, this.token.uuid)
-      );
+      this.talkInitialized = true;
 
-      this.mgr.serverApi.updateConns(this.token.uuid);
+      this.updateTalking();
     });
-
-    socket.on('activate-client', () => this.isActive() || this.setActive(true));
   }
 
   private isActive() {
-    return this.mgr.clientApi.activeClients[this.token.uuid] === this;
+    return this.mgr.clientApi.activeClients.get(this.token.uuid) === this;
   }
 
   private setActive(active: boolean) {
-    if (!active) {
+    const activeClients = this.mgr.clientApi.activeClients;
+
+    if (active) {
+      if (!this.isActive()) {
+        activeClients.get(this.token.uuid)?.setActive(false);
+
+        activeClients.set(this.token.uuid, this);
+
+        this.conn.socket.emit('set-client-active', true);
+      }
+    } else {
       if (this.isActive()) {
-        delete this.mgr.clientApi.activeClients[this.token.uuid];
+        activeClients.delete(this.token.uuid);
+
+        // Set another one active
+        this.mgr.clientApi.authedClients
+          .getValues(this.token.uuid)
+          .filter((c) => c !== this)[0]
+          ?.setActive(true);
       }
 
       this.conn.socket.emit('set-client-active', false);
-    } else {
-      const clientApi = this.mgr.clientApi;
-      if (hasOwnProperty(clientApi.activeClients, this.token.uuid)) {
-        clientApi.activeClients[this.token.uuid].setActive(false);
-      }
-      clientApi.activeClients[this.token.uuid] = this;
-
-      this.conn.socket.emit('set-client-active', true);
     }
 
-    this.mgr.serverApi.playerConns.forEach(this.token.uuid, (playerConn) => {
-      playerConn.updateConn();
-    });
+    this.updateTalking();
+  }
+
+  private isTalking() {
+    return this.mgr.serverApi.talkingClients.get(this.token.uuid) === this;
+  }
+
+  private updateTalking() {
+    if (this.talkInitialized && this.isActive()) {
+      this.mgr.serverApi.setTalkingClient(this.token.uuid, this);
+    } else if (this.isTalking()) {
+      this.mgr.serverApi.unsetTalkingClient(this.token.uuid);
+
+      dropTurnUser(this.token.uuid);
+    }
   }
 
   logout() {
@@ -88,7 +114,5 @@ export class AuthedClient {
 
   destroy() {
     this.setActive(false);
-
-    this.mgr.serverApi.removeTalkingPlayer(this.token.uuid);
   }
 }

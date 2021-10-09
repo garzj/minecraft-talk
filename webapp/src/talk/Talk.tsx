@@ -1,6 +1,6 @@
-import { useSubSocket } from '@/bin/socket';
+import { socket, useSubSocket } from '@/bin/socket';
 import { RTCConnData } from '@shared/types/rtc';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/auth';
 import { ListPlayer } from './ListPlayer';
 import { PlayerConn } from './PlayerConn';
@@ -25,6 +25,11 @@ const Talk: React.FC = () => {
     });
   }, []);
   useSubSocket('rtc-disconnect', onRtcDisconnect);
+
+  // Init talk
+  useEffect(() => {
+    socket.emit('init-talk');
+  }, []);
 
   return (
     <div className='player-list'>

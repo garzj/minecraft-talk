@@ -6,7 +6,7 @@ import { ClientConn } from './ClientConn';
 
 export class ClientAPI extends API<ClientConn> {
   authedClients: NestedMap<AuthedClient> = new NestedMap();
-  activeClients: { [uuid: string]: AuthedClient } = {};
+  activeClients: Map<string, AuthedClient> = new Map();
 
   constructor(mgr: APIManager) {
     super(mgr, 'client', ClientConn);

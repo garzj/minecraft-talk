@@ -1,7 +1,6 @@
 import { signObj } from '@/bin/sign-obj';
 import { Token } from '@/bin/token/Token';
 import { RelationMap } from '@shared/map/RelationMap';
-import { hasOwnProperty } from '@shared/util';
 import { Socket } from 'socket.io';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
@@ -16,8 +15,8 @@ export class ServerConn extends APIConn {
   }
 
   private updateVolume(uuid1: string, uuid2: string, volume: number) {
-    if (!hasOwnProperty(this.mgr.serverApi.talkingPlayers, uuid1)) return;
-    if (!hasOwnProperty(this.mgr.serverApi.talkingPlayers, uuid2)) return;
+    if (!this.mgr.serverApi.talkingClients.has(uuid1)) return;
+    if (!this.mgr.serverApi.talkingClients.has(uuid2)) return;
 
     if (volume === 0) {
       this.playerVols.unset(uuid1, uuid2);
@@ -31,7 +30,7 @@ export class ServerConn extends APIConn {
   private setupApi() {
     // Emit all talking players upon connection
     for (const [uuid, count] of Object.entries(
-      this.mgr.serverApi.talkingPlayers
+      this.mgr.serverApi.talkingClients
     )) {
       if (count > 0) {
         this.socket.emit('talk', uuid, true);
@@ -76,12 +75,12 @@ export class ServerConn extends APIConn {
         }
       }
     );
+  }
 
-    // Disconnects -> set all volumes to 0
-    this.socket.on('disconnect', () => {
-      this.playerVols.forEach((_, uuid1, uuid2) => {
-        this.updateVolume(uuid1, uuid2, 0);
-      });
+  onDisconnect() {
+    // Disconnect -> set all volumes to 0
+    this.playerVols.forEach((_, uuid1, uuid2) => {
+      this.updateVolume(uuid1, uuid2, 0);
     });
   }
 }
