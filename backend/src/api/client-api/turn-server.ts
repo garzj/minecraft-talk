@@ -4,9 +4,8 @@ import Turn = require('node-turn');
 const turnCreds: Map<string, string> = new Map();
 
 const turnServer = new Turn({
-  listeningPort: 3478,
   debugLevel: 'ERROR',
-  authMech: 'short-term',
+  authMech: 'long-term',
 });
 turnServer.start();
 
