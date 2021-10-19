@@ -29,26 +29,30 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
   const [rtc] = useState(() => createPeerConnection(conn.turnUser));
   useEffect(() => () => rtc.close(), [rtc]);
 
-  // Apply remote audio
+  // Receive remote audio
   const [remoteStream] = useState(() => new MediaStream());
   useEffect(() => {
     rtc.ontrack = (e) => {
+      console.log('ontrack');
       if (!audio.current) return setError(new Error('No audio element found.'));
       remoteStream.addTrack(e.track);
       audio.current.srcObject = remoteStream;
     };
   }, [rtc, remoteStream]);
 
-  // Stream user audio
+  // Send local audio
   const stream = useAudioStream();
   useEffect(() => {
     for (const track of stream?.getAudioTracks() ?? []) {
+      console.log('add');
       rtc.addTrack(track);
     }
+
     return () => {
       if (rtc.connectionState === 'closed') return;
 
       for (const sender of rtc.getSenders()) {
+        console.log('remove');
         rtc.removeTrack(sender);
       }
     };
@@ -74,7 +78,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
   );
   useSocketOn('rtc-ice', onIceCand);
 
-  // Apply / Send created local descs
+  // Apply and send created local descs
   const createdDesc = useCallback(
     (sdp: RTCSessionDescriptionInit) => {
       rtc
@@ -87,7 +91,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
     [rtc]
   );
 
-  // Receive remote descs
+  // Receive and apply remote descs
   const onRtcDesc = useCallback(
     (socketId: string, sdp: any) => {
       if (conn.to.socketId !== socketId) return;
@@ -115,16 +119,30 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
   );
   useSocketOn('rtc-desc', onRtcDesc);
 
-  // Create offer if initiator
+  // Send offers if initiator
   useEffect(() => {
     if (conn.initiator) {
-      rtc
-        .createOffer({
-          offerToReceiveAudio: true,
-          voiceActivityDetection: true,
-        })
-        .then(createdDesc)
-        .catch(setError);
+      const sendOffer = () =>
+        rtc
+          .createOffer({
+            offerToReceiveAudio: true,
+            voiceActivityDetection: true,
+          })
+          .then(createdDesc)
+          .catch(setError);
+
+      let negotiating = true;
+      rtc.onnegotiationneeded = () => {
+        if (negotiating) return;
+        negotiating = true;
+
+        console.log('resending');
+        sendOffer();
+      };
+      rtc.onconnectionstatechange = () =>
+        (negotiating = rtc.connectionState !== 'connected');
+
+      sendOffer();
     }
   }, [rtc, conn, createdDesc]);
 

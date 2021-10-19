@@ -14,9 +14,9 @@ declare global {
 }
 
 process.env.NODE_ENV ??= 'production';
-process.env.PORT ??= '3030';
+process.env.PORT ??= '8082';
 
-process.env.ORIGIN ??= 'http://localhost:3030/';
+process.env.ORIGIN ??= 'http://localhost:8082/';
 process.env.ORIGIN = process.env.ORIGIN.replace(/\/*$/, '/');
 
 if (process.env.CONVERSATION_SECRET === undefined) {

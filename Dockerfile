@@ -43,5 +43,5 @@ COPY --from=builder /build/webapp/build/ ./webapp/build/
 COPY --from=builder /build/backend/build/ ./backend/build/
 
 # Start the backend
-EXPOSE 3030
+EXPOSE 8082
 CMD [ "npm", "start" ]

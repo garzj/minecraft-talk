@@ -40,7 +40,7 @@ public final class MinecraftTalk extends JavaPlugin {
     FileConfiguration config = getConfig();
 
     config.options().copyDefaults(true);
-    config.addDefault("socket-uri", "http://localhost:3030/");
+    config.addDefault("socket-uri", "http://localhost:8082/");
     config.addDefault("conversation-secret", "LhKB7U1svggGYx7ZGaLb");
 
     saveConfig();
