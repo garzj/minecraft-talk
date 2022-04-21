@@ -13,7 +13,7 @@
     "noFallthroughCasesInSwitch": true,
     "plugins": [
       {
-        "transform": "@zerollup/ts-transform-paths",
+        "transform": "ts-transform-paths",
         "exclude": ["*"]
       }
     ],
