@@ -1,5 +1,6 @@
 import {
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useMemo,
@@ -26,7 +27,11 @@ const errorAlertContext = createContext<ErrorAlertContext | undefined>(
   undefined
 );
 
-export const ErrorAlert: React.FC = ({ children }) => {
+interface Props {
+  children?: ReactNode;
+}
+
+export const ErrorAlert: React.FC<Props> = ({ children }) => {
   const [errorAlerts, setErrorAlerts] = useState<{
     [index: string]: ErrorAlertData;
   }>({});

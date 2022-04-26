@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { ProvideAudio } from './context/audio';
 import { ProvideAuth } from './context/auth';
 import { ErrorAlert } from './public/error/ErrorAlert';
@@ -16,18 +16,18 @@ export const App: React.FC = () => {
       <Suspense fallback={'Loading...'}>
         <ErrorAlert>
           <SocketError></SocketError>
-          <Switch>
-            <Route exact path='/'>
+          <Routes>
+            <Route path='/'>
               <ProvideAuth>
                 <ProvideAudio>
                   <Talk></Talk>
                 </ProvideAudio>
               </ProvideAuth>
             </Route>
-            <Route exact path='/expired' component={Expired} />
-            <Route exact path='/logout' component={Logout} />
-            <Route component={NotFound} />
-          </Switch>
+            <Route path='/expired' element={<Expired />} />
+            <Route path='/logout' element={<Logout />} />
+            <Route element={<NotFound />} />
+          </Routes>
         </ErrorAlert>
       </Suspense>
     </BrowserRouter>

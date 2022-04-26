@@ -1,7 +1,13 @@
 import { useErrorAlert } from '@/public/error/ErrorAlert';
 import { PlayerData } from '@shared/types/PlayerData';
-import React, { useState, useContext, createContext, useCallback } from 'react';
-import { useHistory } from 'react-router-dom';
+import React, {
+  useState,
+  useContext,
+  createContext,
+  useCallback,
+  ReactNode,
+} from 'react';
+import { useNavigate } from 'react-router-dom';
 import { clearCookie } from '../bin/cookies';
 import { socketEmit, useSocketLoader, useSocketOn } from '../bin/socket';
 
@@ -9,21 +15,25 @@ type Auth = PlayerData | null;
 
 const authContext = createContext<Auth>(null);
 
-export const ProvideAuth: React.FC = ({ children }) => {
+interface Props {
+  children?: ReactNode;
+}
+
+export const ProvideAuth: React.FC<Props> = ({ children }) => {
   const [auth, setAuth] = useState<Auth>(null);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   // Token expiration
   const onTokenExpired = useCallback(() => {
     clearCookie('token');
-    history.push('/expired');
-  }, [history]);
+    navigate('/expired');
+  }, [navigate]);
   useSocketOn('token-expired', onTokenExpired);
 
   // Forced logout
   const onLogout = useCallback(() => {
-    history.push('/logout');
-  }, [history]);
+    navigate('/logout');
+  }, [navigate]);
   useSocketOn('logout', onLogout);
 
   // Auth data

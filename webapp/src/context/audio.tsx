@@ -1,9 +1,19 @@
 import { useErrorAlert } from '@/public/error/ErrorAlert';
-import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 const audioContext = createContext<MediaStream | null>(null);
 
-export const ProvideAudio: React.FC = ({ children }) => {
+interface Props {
+  children?: ReactNode;
+}
+
+export const ProvideAudio: React.FC<Props> = ({ children }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   const [addMicError, removeMicError] = useErrorAlert({

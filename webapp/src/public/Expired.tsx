@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { socketEmit, useSocketLoader, useSocketOn } from '../bin/socket';
 
 const Expired: React.FC = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
-  const onLoggedIn = useCallback(() => history.push('/'), [history]);
+  const onLoggedIn = useCallback(() => navigate('/'), [navigate]);
   useSocketOn('logged-in', onLoggedIn);
 
   useSocketLoader(
