@@ -149,7 +149,10 @@ public class MinecraftTalkAPI implements Listener {
   // TALK
 
   double CalcVolume(double distanceSquared) {
-    return (MAX_TALK_DISTANCE_SQUARED - distanceSquared) / MAX_TALK_DISTANCE_SQUARED;
+    // return (MAX_TALK_DISTANCE_SQUARED - distanceSquared) /
+    // MAX_TALK_DISTANCE_SQUARED;
+
+    return Math.sqrt(distanceSquared);
   }
 
   void EmitVolumes(Player player) {
