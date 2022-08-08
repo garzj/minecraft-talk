@@ -10,7 +10,7 @@ A minecraft plugin allowing players to communicate over a website while playing.
 2. Install [Docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/install/)
 3. Configure [./docker-compose.yml](./docker-compose.yml)
    - Secrets should be generated randomly
-   - Replace the `8080` after the `:` with your desired website port
+   - Replace `8080` with your desired website port
    - The origin should be your ip address with the port of the website or a domain that points to the site (I suggest, you use a reverse proxy to configure SSL)
 4. Run `docker-compose up -d` to start up the server
 

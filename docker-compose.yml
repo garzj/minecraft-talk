@@ -6,11 +6,11 @@ services:
     image: garzj/minecraft-talk
     build: .
     ports:
-      - 8080:8080
+      - 3000:8080
       - 3478:3478
     volumes:
       - ./data:/app/server/data
     environment:
       CONVERSATION_SECRET: LhKB7U1svggGYx7ZGaLb
       TOKEN_SECRET: eum4Yqm65TndzWLJr0Br
-      ORIGIN: http://localhost:8082/
+      ORIGIN: http://localhost:8080/
