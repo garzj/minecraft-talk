@@ -24,7 +24,8 @@ import java.util.*;
 
 public class MinecraftTalkAPI implements Listener {
   private static final double MAX_TALK_DISTANCE = 16;
-  private static final double MAX_TALK_DISTANCE_SQUARED = Math.pow(MAX_TALK_DISTANCE, 2);
+  // private static final double MAX_TALK_DISTANCE_SQUARED =
+  // Math.pow(MAX_TALK_DISTANCE, 2);
 
   private Manager socketManager;
   private Socket socket;
