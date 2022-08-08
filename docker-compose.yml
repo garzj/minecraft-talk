@@ -6,7 +6,7 @@ services:
     image: garzj/minecraft-talk
     build: .
     ports:
-      - 3000:8080
+      - 8080:8080
       - 3478:3478
     volumes:
       - ./data:/app/server/data
