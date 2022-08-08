@@ -6,7 +6,7 @@ A minecraft plugin allowing players to communicate over a website while playing.
 
 ### Setup the website
 
-1. Clone this repository.
+1. Clone this repository onto your server.
 2. Install [Docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/install/)
 3. Configure [./docker-compose.yml](./docker-compose.yml)
    - Secrets should be generated randomly
