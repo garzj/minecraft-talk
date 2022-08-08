@@ -1,5 +1,5 @@
 import { hasOwnProperty } from '@shared/util';
-import { ForEachCallback, TwoKeyMap } from './TwoKeyMap';
+import { ForEachCallback, TwoKeyMap } from '@shared/map/TwoKeyMap';
 
 export class RelationMap<T> extends TwoKeyMap<T> {
   set(key1: string, key2: string, val: T): void {
