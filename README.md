@@ -1,6 +1,6 @@
 # minecraft-talk
 
-A minecraft plugin allowing players to communicate over a website while playing.
+A minecraft plugin allowing players to communicate over a self-hosted website while playing.
 
 ## Setup
 
