@@ -5,10 +5,9 @@ services:
     container_name: minecraft-talk
     image: garzj/minecraft-talk
     build: .
-    # ports:
-    #   - 8082:8082
-    #   - 3478:3478
-    network_mode: host
+    ports:
+      - 8080:8080
+      - 3478:3478
     volumes:
       - ./data:/app/server/data
     environment:
