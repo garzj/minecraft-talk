@@ -17,16 +17,19 @@ export const App: React.FC = () => {
         <ErrorAlert>
           <SocketError></SocketError>
           <Routes>
-            <Route path='/'>
-              <ProvideAuth>
-                <ProvideAudio>
-                  <Talk></Talk>
-                </ProvideAudio>
-              </ProvideAuth>
-            </Route>
+            <Route path='*' element={<NotFound />} />
+            <Route
+              path='/'
+              element={
+                <ProvideAuth>
+                  <ProvideAudio>
+                    <Talk></Talk>
+                  </ProvideAudio>
+                </ProvideAuth>
+              }
+            />
             <Route path='/expired' element={<Expired />} />
             <Route path='/logout' element={<Logout />} />
-            <Route element={<NotFound />} />
           </Routes>
         </ErrorAlert>
       </Suspense>
