@@ -9,22 +9,22 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@types/jest": "^28.1.6",
-    "@types/node": "^18.6.5",
-    "@types/react": "^18.0.17",
-    "@types/react-dom": "^18.0.6",
+    "@types/jest": "^29.2.2",
+    "@types/node": "^18.11.9",
+    "@types/react": "^18.0.25",
+    "@types/react-dom": "^18.0.8",
     "@types/react-router-dom": "^5.3.3",
     "@types/socket.io-client": "^3.0.0",
-    "@types/webrtc": "^0.0.32",
+    "@types/webrtc": "^0.0.33",
     "react": "^18.2.0",
     "react-app-rewire-alias": "^1.1.7",
     "react-app-rewired": "^2.2.1",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.3.0",
+    "react-router-dom": "^6.4.3",
     "react-scripts": "^5.0.1",
-    "sass": "^1.54.3",
-    "socket.io-client": "^4.5.1",
-    "typescript": "^4.7.4"
+    "sass": "^1.56.0",
+    "socket.io-client": "^4.5.3",
+    "typescript": "^4.8.4"
   },
   "proxy": "http://localhost:8080/",
   "eslintConfig": {
@@ -47,6 +47,7 @@
   },
   "overrides": {
     "nth-check": "2.0.1",
-    "terser": "5.14.2"
+    "minimatch": "3.0.5",
+    "loader-utils": "2.0.3"
   }
 }
