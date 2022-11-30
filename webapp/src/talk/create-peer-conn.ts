@@ -15,7 +15,7 @@ export function createPeerConnection(turnUserData: TurnUserData) {
         credentialType: 'password',
         username: turnUserData.username,
         credential: turnUserData.password,
-      },
+      } as RTCIceServer,
     ],
   });
 }
