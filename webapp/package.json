@@ -9,21 +9,21 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@types/jest": "^29.4.4",
-    "@types/node": "^18.15.3",
-    "@types/react": "^18.0.28",
-    "@types/react-dom": "^18.0.11",
+    "@types/jest": "^29.5.2",
+    "@types/node": "^20.3.1",
+    "@types/react": "^18.2.13",
+    "@types/react-dom": "^18.2.6",
     "@types/react-router-dom": "^5.3.3",
     "@types/socket.io-client": "^3.0.0",
-    "@types/webrtc": "^0.0.33",
+    "@types/webrtc": "^0.0.35",
     "react": "^18.2.0",
     "react-app-rewire-alias": "^1.1.7",
     "react-app-rewired": "^2.2.1",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.9.0",
+    "react-router-dom": "^6.13.0",
     "react-scripts": "^5.0.1",
-    "sass": "^1.59.3",
-    "socket.io-client": "^4.6.1",
+    "sass": "^1.63.4",
+    "socket.io-client": "^4.6.2",
     "typescript": "^4.9.5"
   },
   "proxy": "http://localhost:8080/",
@@ -46,10 +46,6 @@
     ]
   },
   "overrides": {
-    "nth-check": "2.0.1",
-    "minimatch": "3.0.5",
-    "json5": "2.2.2",
-    "dns-packet": "5.4.0",
-    "webpack": "5.76.0"
+    "nth-check": "2.0.1"
   }
 }
