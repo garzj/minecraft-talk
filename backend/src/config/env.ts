@@ -19,11 +19,11 @@ process.env.PORT ??= '8080';
 process.env.ORIGIN ??= 'http://localhost:8080/';
 process.env.ORIGIN = process.env.ORIGIN.replace(/\/*$/, '/');
 
-if (process.env.CONVERSATION_SECRET === undefined) {
+if (!process.env.CONVERSATION_SECRET) {
   console.error('Please specify a CONVERSATION_SECRET.');
   process.exit(1);
 }
-if (process.env.TOKEN_SECRET === undefined) {
+if (!process.env.TOKEN_SECRET) {
   console.error('Please specify a TOKEN_SECRET.');
   process.exit(1);
 }
