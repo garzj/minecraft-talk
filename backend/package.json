@@ -7,7 +7,7 @@
     "dev": "export NODE_ENV=development || set NODE_ENV=development&& npx ts-node-dev -C ttypescript --respawn --poll --exit-child --no-deps ./src/app.ts",
     "build": "npx ttsc -p .",
     "start": "node ./build/backend/src/app.js",
-    "deploy": "npm run build && npm start"
+    "deploy": "yarn build && yarn start"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",

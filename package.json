@@ -6,11 +6,11 @@
   "description": "A minecraft plugin allowing players to communicate over a website while playing.",
   "author": "Johannes Garz <jojogarz123@gmail.com> (https://www.garz.tech/)",
   "scripts": {
-    "install-all": "npm i && cd webapp && npm i && cd ../backend && npm i",
-    "dev": "npx concurrently \"cd backend && npm run dev\" \"cd webapp && npm start\"",
-    "build": "cd webapp && npm run build && cd ../backend && npm run build",
-    "start": "cd backend && npm start",
-    "deploy": "npm run build && npm start"
+    "install-all": "yarn && cd webapp && yarn && cd ../backend && yarn",
+    "dev": "npx concurrently \"cd backend && yarn dev\" \"cd webapp && yarn start\"",
+    "build": "cd webapp && yarn build && cd ../backend && yarn build",
+    "start": "cd backend && yarn start",
+    "deploy": "yarn build && yarn start"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"

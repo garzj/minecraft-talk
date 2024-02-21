@@ -5,22 +5,22 @@ WORKDIR /build/
 
 # Deps
 COPY webapp/package*.json ./webapp/
-RUN cd webapp && npm ci
+RUN cd webapp && yarn
 COPY backend/package*.json ./backend/
-RUN cd backend && npm ci
+RUN cd backend && yarn
 COPY package*.json ./
-RUN npm ci
+RUN yarn
 
 # Shared code
 COPY ./shared/ ./shared/
 
 # Build webapp
 COPY ./webapp/ ./webapp/
-RUN cd webapp && npm run build
+RUN cd webapp && yarn build
 
 # Build backend
 COPY ./backend/ ./backend/
-RUN cd backend && npm run build
+RUN cd backend && yarn build
 
 
 # PROD ENV
@@ -30,11 +30,11 @@ WORKDIR /app/
 
 # Server deps
 COPY ./backend/package*.json ./backend/
-RUN cd backend && npm ci --prod
+RUN cd backend && yarn --prod
 
 # Shared deps
 COPY package*.json ./
-RUN npm ci --only=prod
+RUN yarn --prod
 
 # Static webapp files
 COPY --from=builder /build/webapp/build/ ./webapp/build/
@@ -44,4 +44,4 @@ COPY --from=builder /build/backend/build/ ./backend/build/
 
 # Start the backend
 EXPOSE 8080
-CMD [ "npm", "start" ]
+CMD [ "yarn", "start" ]
