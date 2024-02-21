@@ -1,5 +1,5 @@
 # BUILDER
-FROM node:lts-alpine3.12 AS builder
+FROM node:21-alpine3.19 AS builder
 
 WORKDIR /build/
 
@@ -24,7 +24,7 @@ RUN cd backend && yarn build
 
 
 # PROD ENV
-FROM node:lts-alpine3.12
+FROM node:21-alpine3.19
 
 WORKDIR /app/
 
