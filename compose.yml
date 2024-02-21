@@ -11,6 +11,6 @@ services:
     volumes:
       - ./data:/app/server/data
     environment:
-      CONVERSATION_SECRET: LhKB7U1svggGYx7ZGaLb
-      TOKEN_SECRET: eum4Yqm65TndzWLJr0Br
+      CONVERSATION_SECRET: ${CONVERSATION_SECRET}
+      TOKEN_SECRET: ${TOKEN_SECRET}
       ORIGIN: http://localhost:8080/
