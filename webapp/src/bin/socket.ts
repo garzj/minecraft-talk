@@ -15,7 +15,7 @@ export const useSocketOn = (event: string, handler: (...args: any[]) => void) =>
     return () => {
       socket.off(event, handler);
     };
-  });
+  }, [handler]);
 
 export const useSocketLoader = (loader: () => (() => void) | void) => {
   useEffect(() => {
