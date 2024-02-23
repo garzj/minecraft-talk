@@ -29,10 +29,8 @@ export class ServerConn extends APIConn {
 
   private setupApi() {
     // Emit all talking players upon connection
-    for (const [uuid, count] of Object.entries(this.mgr.serverApi.talkingClients)) {
-      if (count > 0) {
-        this.socket.emit('talk', uuid, true);
-      }
+    for (const uuid of this.mgr.serverApi.talkingClients.keys()) {
+      this.socket.emit('talk', uuid, true);
     }
 
     // Login / Logout:
