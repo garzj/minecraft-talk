@@ -1,10 +1,10 @@
-import { RelationMap } from '@shared/map/RelationMap';
+import { RelationMap } from '../../../shared/map/RelationMap';
 import { API } from '../API';
 import { APIManager } from '../APIManager';
-import { serverAPIAuthenticator } from './authenticator';
+import { AuthedClient } from '../client-api/AuthedClient';
 import { ClientConnection } from '../client-api/ClientConnection';
 import { ServerConn } from './ServerConn';
-import { AuthedClient } from '../client-api/AuthedClient';
+import { serverAPIAuthenticator } from './authenticator';
 
 export class ServerAPI extends API<ServerConn> {
   talkingClients: Map<string, AuthedClient> = new Map();
@@ -65,11 +65,7 @@ export class ServerAPI extends API<ServerConn> {
     }
 
     if (!playerConn) {
-      this.playerConns.set(
-        uuid1,
-        uuid2,
-        new ClientConnection(client1, client2, volume)
-      );
+      this.playerConns.set(uuid1, uuid2, new ClientConnection(client1, client2, volume));
     } else {
       playerConn.updateVolume(volume);
     }

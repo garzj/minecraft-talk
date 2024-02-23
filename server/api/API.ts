@@ -9,7 +9,7 @@ export abstract class API<TAPIConn extends APIConn> {
   constructor(
     public mgr: APIManager,
     apiPath: string,
-    APIConnClass: new (mgr: APIManager, socket: Socket) => TAPIConn
+    APIConnClass: new (mgr: APIManager, socket: Socket) => TAPIConn,
   ) {
     this.nsp = this.mgr.io.of('/api/' + apiPath);
 

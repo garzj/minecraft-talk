@@ -1,15 +1,9 @@
-import { useErrorAlert } from '@/pages/error/ErrorAlert';
-import { PlayerData } from '@shared/types/PlayerData';
-import React, {
-  useState,
-  useContext,
-  createContext,
-  useCallback,
-  ReactNode,
-} from 'react';
+import React, { ReactNode, createContext, useCallback, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PlayerData } from '../../shared/types/PlayerData';
 import { clearCookie } from '../bin/cookies';
 import { socketEmit, useSocketLoader, useSocketOn } from '../bin/socket';
+import { useErrorAlert } from '../pages/error/ErrorAlert';
 
 type Auth = PlayerData | null;
 
@@ -39,12 +33,12 @@ export const ProvideAuth: React.FC<Props> = ({ children }) => {
   // Auth data
   useSocketOn(
     'set-player-data',
-    useCallback((player: PlayerData) => setAuth(player), [setAuth])
+    useCallback((player: PlayerData) => setAuth(player), [setAuth]),
   );
   useSocketLoader(
     useCallback(() => {
       socketEmit('get-player-data');
-    }, [])
+    }, []),
   );
 
   // Activeness
@@ -56,21 +50,16 @@ export const ProvideAuth: React.FC<Props> = ({ children }) => {
       onClick: useCallback(() => socketEmit('activate-client'), []),
     },
   });
-  const onActiveChange = useCallback(
-    (active: boolean) => setActiveErr(!active),
-    [setActiveErr]
-  );
+  const onActiveChange = useCallback((active: boolean) => setActiveErr(!active), [setActiveErr]);
   useSocketOn('set-client-active', onActiveChange);
 
   useSocketLoader(
     useCallback(() => {
       socketEmit('init-client-active');
-    }, [])
+    }, []),
   );
 
-  return (
-    <authContext.Provider value={auth}>{auth && children}</authContext.Provider>
-  );
+  return <authContext.Provider value={auth}>{auth && children}</authContext.Provider>;
 };
 
 export const useAuth = () => {

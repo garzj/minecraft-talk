@@ -1,13 +1,10 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 
-export const rootDir =
-  process.env.NODE_ENV === 'production'
-    ? join(__dirname, '../../../../..')
-    : join(__dirname, '../../..');
+export const rootDir = '.';
 
-export const buildDir = join(rootDir, 'webapp/build');
-export const buildDirExists = existsSync(buildDir);
+export const clientDir = join(rootDir, 'build/client');
+export const clientDirExists = existsSync(clientDir);
 
-export const indexFile = join(buildDir, 'index.html');
-export const indexFileExists = buildDirExists && existsSync(indexFile);
+export const indexFile = join(clientDir, 'index.html');
+export const indexFileExists = clientDirExists && existsSync(indexFile);

@@ -1,4 +1,4 @@
-import { hasOwnProperty } from '@shared/util';
+import { hasOwnProperty } from '../util';
 
 export type ForEachCallback<T> = (value: T, key1: string, key2: string) => void;
 
@@ -22,10 +22,7 @@ export abstract class TwoKeyMap<T> {
 
   get(key1: string): Readonly<Record<string, T>> | undefined;
   get(key1: string, key2: string): T | undefined;
-  get(
-    key1: string,
-    key2?: string
-  ): Readonly<Record<string, T>> | T | undefined {
+  get(key1: string, key2?: string): Readonly<Record<string, T>> | T | undefined {
     if (key2 === undefined) {
       return this.map[key1];
     }

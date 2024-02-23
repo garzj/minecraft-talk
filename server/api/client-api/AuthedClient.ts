@@ -1,5 +1,5 @@
-import { Token } from '@/bin/token/Token';
-import { PlayerData } from '@shared/types/PlayerData';
+import { PlayerData } from '../../../shared/types/PlayerData';
+import { Token } from '../../bin/token/Token';
 import { APIManager } from '../APIManager';
 import { ClientConn } from './ClientConn';
 import { dropTurnUser } from './turn-server';
@@ -12,7 +12,7 @@ export class AuthedClient {
   constructor(
     public mgr: APIManager,
     public conn: ClientConn,
-    public token: Token
+    public token: Token,
   ) {
     this.setupApi();
   }
@@ -42,14 +42,9 @@ export class AuthedClient {
     });
 
     // Activeness
-    socket.on('init-client-active', () =>
-      this.setActive(!this.mgr.clientApi.activeClients.has(this.token.uuid))
-    );
+    socket.on('init-client-active', () => this.setActive(!this.mgr.clientApi.activeClients.has(this.token.uuid)));
 
-    socket.on(
-      'activate-client',
-      () => !this.isActive() && this.setActive(true)
-    );
+    socket.on('activate-client', () => !this.isActive() && this.setActive(true));
 
     // Talk
     socket.on('init-talk', () => {

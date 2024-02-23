@@ -1,5 +1,5 @@
-import { validateToken } from '@/bin/token/validate-token';
 import { Socket } from 'socket.io';
+import { validateToken } from '../../bin/token/validate-token';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
 import { AuthedClient } from './AuthedClient';

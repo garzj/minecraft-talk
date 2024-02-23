@@ -43,5 +43,4 @@ export const useSocketLoader = (loader: () => (() => void) | void) => {
   }, [loader]);
 };
 
-export const socketEmit = (event: string, ...args: any[]) =>
-  socket.emit(event, ...args);
+export const socketEmit = (event: string, ...args: any[]) => socket.emit(event, ...args);

@@ -1,4 +1,4 @@
-import { RTCConnData } from '@shared/types/rtc';
+import { RTCConnData } from '../../../shared/types/rtc';
 import { AuthedClient } from './AuthedClient';
 import { genTurnUser } from './turn-server';
 
@@ -12,16 +12,12 @@ export class ClientConnection {
   constructor(
     public client1: AuthedClient,
     public client2: AuthedClient,
-    public volume: number
+    public volume: number,
   ) {
     this.connect();
   }
 
-  private getRTCConnData(
-    from: AuthedClient,
-    to: AuthedClient,
-    initiator: boolean
-  ): RTCConnData {
+  private getRTCConnData(from: AuthedClient, to: AuthedClient, initiator: boolean): RTCConnData {
     return {
       initiator,
       turnUser: genTurnUser(from.token.uuid),
@@ -34,30 +30,16 @@ export class ClientConnection {
   }
 
   private connect() {
-    this.client1.conn.socket.emit(
-      'rtc-connect',
-      this.getRTCConnData(this.client1, this.client2, true)
-    );
-    this.client2.conn.socket.emit(
-      'rtc-connect',
-      this.getRTCConnData(this.client2, this.client1, false)
-    );
+    this.client1.conn.socket.emit('rtc-connect', this.getRTCConnData(this.client1, this.client2, true));
+    this.client2.conn.socket.emit('rtc-connect', this.getRTCConnData(this.client2, this.client1, false));
 
     // Reemit messages between clients
     for (const event of ['rtc-desc', 'rtc-ice', 'rtc-err']) {
       this.socketOn(this.client1, event, (...args: unknown[]) =>
-        this.client2.conn.socket.emit(
-          event,
-          this.client1.getSocketId(),
-          ...args
-        )
+        this.client2.conn.socket.emit(event, this.client1.getSocketId(), ...args),
       );
       this.socketOn(this.client2, event, (...args: unknown[]) =>
-        this.client1.conn.socket.emit(
-          event,
-          this.client2.getSocketId(),
-          ...args
-        )
+        this.client1.conn.socket.emit(event, this.client2.getSocketId(), ...args),
       );
     }
   }
@@ -66,16 +48,8 @@ export class ClientConnection {
     if (volume === this.volume) return;
     this.volume = volume;
 
-    this.client1.conn.socket.emit(
-      'rtc-update-vol',
-      this.client2.getSocketId(),
-      volume
-    );
-    this.client2.conn.socket.emit(
-      'rtc-update-vol',
-      this.client1.getSocketId(),
-      volume
-    );
+    this.client1.conn.socket.emit('rtc-update-vol', this.client2.getSocketId(), volume);
+    this.client2.conn.socket.emit('rtc-update-vol', this.client1.getSocketId(), volume);
   }
 
   private disconnect() {
@@ -83,11 +57,7 @@ export class ClientConnection {
     this.client2.conn.socket.emit('rtc-disconnect', this.client1.getSocketId());
   }
 
-  private socketOn(
-    client: AuthedClient,
-    event: string,
-    callback: (...args: any[]) => void
-  ) {
+  private socketOn(client: AuthedClient, event: string, callback: (...args: any[]) => void) {
     this.listeners.push({ client, event, callback });
     client.conn.socket.on(event, callback);
   }

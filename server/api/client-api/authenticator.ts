@@ -1,7 +1,7 @@
-import { Token } from '@/bin/token/Token';
-import { validateToken } from '@/bin/token/validate-token';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { Socket } from 'socket.io';
+import { Token } from '../../bin/token/Token';
+import { validateToken } from '../../bin/token/validate-token';
 
 export function clientAPIAuthenticator(socket: Socket): Token | null {
   const req: any = socket.request;

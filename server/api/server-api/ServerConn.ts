@@ -1,7 +1,7 @@
-import { signObj } from '@/bin/sign-obj';
-import { Token } from '@/bin/token/Token';
-import { RelationMap } from '@shared/map/RelationMap';
 import { Socket } from 'socket.io';
+import { RelationMap } from '../../../shared/map/RelationMap';
+import { signObj } from '../../bin/sign-obj';
+import { Token } from '../../bin/token/Token';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
 
@@ -29,52 +29,42 @@ export class ServerConn extends APIConn {
 
   private setupApi() {
     // Emit all talking players upon connection
-    for (const [uuid, count] of Object.entries(
-      this.mgr.serverApi.talkingClients
-    )) {
+    for (const [uuid, count] of Object.entries(this.mgr.serverApi.talkingClients)) {
       if (count > 0) {
         this.socket.emit('talk', uuid, true);
       }
     }
 
     // Login / Logout:
-    this.socket.on(
-      'login',
-      (uuid: string, name: string, ack: (link: string) => void) => {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
+    this.socket.on('login', (uuid: string, name: string, ack: (link: string) => void) => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
 
-        const token: Token = {
-          createdAt: new Date().getTime(),
-          expiredAt: tomorrow.getTime(),
-          name,
-          uuid,
-        };
+      const token: Token = {
+        createdAt: new Date().getTime(),
+        expiredAt: tomorrow.getTime(),
+        name,
+        uuid,
+      };
 
-        const signedToken = signObj(token);
+      const signedToken = signObj(token);
 
-        const encodedToken = encodeURIComponent(
-          Buffer.from(signedToken).toString('base64')
-        );
-        const link = `${process.env.ORIGIN}login/?t=${encodedToken}`;
+      const encodedToken = encodeURIComponent(Buffer.from(signedToken).toString('base64'));
+      const link = `${process.env.ORIGIN}login/?t=${encodedToken}`;
 
-        ack(link);
-      }
-    );
+      ack(link);
+    });
 
     this.socket.on('logout', (uuid, ack: (success: boolean) => void) => {
       ack(this.mgr.clientApi.logoutPlayer(uuid));
     });
 
     // Volume updates
-    this.socket.on(
-      'update-vols',
-      (uuid1, volumes: { [uuid: string]: number }) => {
-        for (let [uuid2, volume] of Object.entries(volumes)) {
-          this.updateVolume(uuid1, uuid2, volume);
-        }
+    this.socket.on('update-vols', (uuid1, volumes: { [uuid: string]: number }) => {
+      for (const [uuid2, volume] of Object.entries(volumes)) {
+        this.updateVolume(uuid1, uuid2, volume);
       }
-    );
+    });
   }
 
   onDisconnect() {

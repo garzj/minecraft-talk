@@ -1,11 +1,4 @@
-import {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from 'react';
+import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import './ErrorAlert.scss';
 
 type ErrorAlertData = {
@@ -23,9 +16,7 @@ type ErrorAlertContext = {
   removeError: (index: number) => void;
 };
 
-const errorAlertContext = createContext<ErrorAlertContext | undefined>(
-  undefined
-);
+const errorAlertContext = createContext<ErrorAlertContext | undefined>(undefined);
 
 interface Props {
   children?: ReactNode;
@@ -50,7 +41,7 @@ export const ErrorAlert: React.FC<Props> = ({ children }) => {
           return newAlerts;
         }),
     }),
-    [setErrorAlerts]
+    [setErrorAlerts],
   );
 
   const shownAlert = Object.values(errorAlerts)[0];
@@ -66,11 +57,7 @@ export const ErrorAlert: React.FC<Props> = ({ children }) => {
 
               <p>{shownAlert.msg}</p>
 
-              {shownAlert.btn && (
-                <button onClick={shownAlert.btn.onClick}>
-                  {shownAlert.btn.msg}
-                </button>
-              )}
+              {shownAlert.btn && <button onClick={shownAlert.btn.onClick}>{shownAlert.btn.msg}</button>}
             </div>
           </div>
         </div>
@@ -79,14 +66,10 @@ export const ErrorAlert: React.FC<Props> = ({ children }) => {
   );
 };
 
-export function useErrorAlert(
-  data: ErrorAlertData
-): [() => void, () => void, (shown: boolean) => void] {
+export function useErrorAlert(data: ErrorAlertData): [() => void, () => void, (shown: boolean) => void] {
   const context = useContext(errorAlertContext);
   if (!context) {
-    throw new Error(
-      "useErrorAlert can't be called outside the scope of a ErrorAlertContext"
-    );
+    throw new Error("useErrorAlert can't be called outside the scope of a ErrorAlertContext");
   }
 
   return [
@@ -101,7 +84,7 @@ export function useErrorAlert(
           context.removeError(data.index);
         }
       },
-      [context]
+      [context],
     ),
     /* eslint-enable */
   ];

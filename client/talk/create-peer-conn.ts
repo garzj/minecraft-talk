@@ -1,4 +1,4 @@
-import { TurnUserData } from '@shared/types/rtc';
+import { TurnUserData } from '../../shared/types/rtc';
 
 export function createPeerConnection(turnUserData: TurnUserData) {
   return new RTCPeerConnection({

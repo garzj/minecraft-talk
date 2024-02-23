@@ -1,5 +1,5 @@
-import { hasOwnProperty } from '@shared/util';
-import { ForEachCallback, TwoKeyMap } from '@shared/map/TwoKeyMap';
+import { ForEachCallback, TwoKeyMap } from '../map/TwoKeyMap';
+import { hasOwnProperty } from '../util';
 
 export class NestedMap<T> extends TwoKeyMap<T> {
   set(key1: string, key2: string, val: T): void {

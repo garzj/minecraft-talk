@@ -1,10 +1,13 @@
-import { applyMiddleware } from './middleware';
 import { Application } from 'express';
-import { applyRoutes } from './routes';
 import { Server } from 'http';
+import { applyMiddleware } from './middleware';
+import { applyRoutes } from './routes';
 
 export class Web {
-  constructor(public server: Server, public app: Application) {
+  constructor(
+    public server: Server,
+    public app: Application,
+  ) {
     applyMiddleware(this.app);
 
     applyRoutes(this.app);

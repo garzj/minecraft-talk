@@ -1,11 +1,7 @@
-import { useErrorAlert } from '@/pages/error/ErrorAlert';
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+/// <reference types="webrtc" />
+
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { useErrorAlert } from '../pages/error/ErrorAlert';
 
 const audioContext = createContext<MediaStream | null>(null);
 
@@ -40,13 +36,11 @@ export const ProvideAudio: React.FC<Props> = ({ children }) => {
       };
 
       if (navigator.mediaDevices) {
-        navigator.mediaDevices
-          .getUserMedia(constraints)
-          .then(successCallback)
-          .catch(addMicError);
+        navigator.mediaDevices.getUserMedia(constraints).then(successCallback).catch(addMicError);
       } else {
         navigator.getUserMedia =
           navigator.getUserMedia ||
+          (navigator.mediaDevices as any)?.getUserMedia ||
           navigator.webkitGetUserMedia ||
           navigator.mozGetUserMedia ||
           navigator.msGetUserMedia;
@@ -79,9 +73,7 @@ export const ProvideAudio: React.FC<Props> = ({ children }) => {
     };
   }, [addMicError, removeMicError]);
 
-  return (
-    <audioContext.Provider value={stream}>{children}</audioContext.Provider>
-  );
+  return <audioContext.Provider value={stream}>{children}</audioContext.Provider>;
 };
 
 export const useAudioStream = () => useContext(audioContext);

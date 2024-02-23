@@ -3,45 +3,27 @@ FROM node:21-alpine3.19 AS builder
 
 WORKDIR /build/
 
-# Deps
-COPY webapp/package*.json ./webapp/
-RUN cd webapp && yarn
-COPY backend/package*.json ./backend/
-RUN cd backend && yarn
-COPY package*.json ./
-RUN yarn
+# Build deps
+COPY package.json yarn.lock ./
+RUN yarn install --pure-lockfile
 
-# Shared code
-COPY ./shared/ ./shared/
-
-# Build webapp
-COPY ./webapp/ ./webapp/
-RUN cd webapp && yarn build
-
-# Build backend
-COPY ./backend/ ./backend/
-RUN cd backend && yarn build
+# Build TS and vite
+COPY ./ ./
+RUN yarn build
 
 
 # PROD ENV
-FROM node:21-alpine3.19
+FROM node:21-alpine3.19 AS runner
 
 WORKDIR /app/
 
-# Server deps
-COPY ./backend/package*.json ./backend/
-RUN cd backend && yarn --prod
+# Prod deps
+COPY package.json yarn.lock ./
+RUN yarn install --pure-lockfile --prod
 
-# Shared deps
-COPY package*.json ./
-RUN yarn --prod
+# Built files
+COPY --from=builder /build/build/ ./build/
 
-# Static webapp files
-COPY --from=builder /build/webapp/build/ ./webapp/build/
-
-# Server files
-COPY --from=builder /build/backend/build/ ./backend/build/
-
-# Start the backend
+# Run the server
 EXPOSE 8080
 CMD [ "yarn", "start" ]

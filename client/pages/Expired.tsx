@@ -11,7 +11,7 @@ const Expired: React.FC = () => {
   useSocketLoader(
     useCallback(() => {
       socketEmit('check-token');
-    }, [])
+    }, []),
   );
 
   return (

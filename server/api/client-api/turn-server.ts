@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import Turn = require('node-turn');
+import Turn from 'node-turn';
 
 const turnCreds: Map<string, string> = new Map();
 

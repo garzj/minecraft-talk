@@ -1,9 +1,9 @@
-import { socketEmit, useSocketOn } from '@/bin/socket';
-import { useAudioStream } from '@/context/audio';
-import { RTCConnData } from '@shared/types/rtc';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { createPeerConnection } from './create-peer-conn';
+import { RTCConnData } from '../../shared/types/rtc';
+import { socketEmit, useSocketOn } from '../bin/socket';
+import { useAudioStream } from '../context/audio';
 import { ListPlayer } from './ListPlayer';
+import { createPeerConnection } from './create-peer-conn';
 
 interface Props {
   conn: RTCConnData;
@@ -74,7 +74,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
         rtc.addIceCandidate(new RTCIceCandidate(ice)).catch(console.warn);
       } catch (e) {}
     },
-    [rtc, conn]
+    [rtc, conn],
   );
   useSocketOn('rtc-ice', onIceCand);
 
@@ -88,7 +88,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
         })
         .catch(setError);
     },
-    [rtc]
+    [rtc],
   );
 
   // Receive and apply remote descs
@@ -97,9 +97,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
       if (conn.to.socketId !== socketId) return;
 
       try {
-        rtc
-          .setRemoteDescription(new RTCSessionDescription(sdp))
-          .catch(setError);
+        rtc.setRemoteDescription(new RTCSessionDescription(sdp)).catch(setError);
       } catch (e) {
         setError(e);
         return;
@@ -115,7 +113,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
           .catch(setError);
       }
     },
-    [rtc, conn, createdDesc]
+    [rtc, conn, createdDesc],
   );
   useSocketOn('rtc-desc', onRtcDesc);
 
@@ -139,8 +137,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
         console.log('resending');
         sendOffer();
       };
-      rtc.onconnectionstatechange = () =>
-        (negotiating = rtc.connectionState !== 'connected');
+      rtc.onconnectionstatechange = () => (negotiating = rtc.connectionState !== 'connected');
 
       sendOffer();
     }
@@ -153,7 +150,7 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
 
       setVolume(volume);
     },
-    [conn]
+    [conn],
   );
   useSocketOn('rtc-update-vol', onUpdateVol);
 

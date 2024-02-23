@@ -1,4 +1,4 @@
-import { NestedMap } from '@shared/map/NestedMap';
+import { NestedMap } from '../../../shared/map/NestedMap';
 import { API } from '../API';
 import { APIManager } from '../APIManager';
 import { AuthedClient } from './AuthedClient';

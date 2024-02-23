@@ -1,6 +1,6 @@
-import { socketEmit, useSocketLoader, useSocketOn } from '@/bin/socket';
-import { RTCConnData } from '@shared/types/rtc';
 import { useCallback, useState } from 'react';
+import { RTCConnData } from '../../shared/types/rtc';
+import { socketEmit, useSocketLoader, useSocketOn } from '../bin/socket';
 import { useAuth } from '../context/auth';
 import { ListPlayer } from './ListPlayer';
 import { PlayerConn } from './PlayerConn';
@@ -32,7 +32,7 @@ const Talk: React.FC = () => {
       socketEmit('init-talk');
 
       return () => setConns({});
-    }, [])
+    }, []),
   );
 
   return (

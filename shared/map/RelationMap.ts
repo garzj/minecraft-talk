@@ -1,5 +1,5 @@
-import { hasOwnProperty } from '@shared/util';
-import { ForEachCallback, TwoKeyMap } from '@shared/map/TwoKeyMap';
+import { ForEachCallback, TwoKeyMap } from '../map/TwoKeyMap';
+import { hasOwnProperty } from '../util';
 
 export class RelationMap<T> extends TwoKeyMap<T> {
   set(key1: string, key2: string, val: T): void {
@@ -22,7 +22,7 @@ export class RelationMap<T> extends TwoKeyMap<T> {
       }
       delete this.map[key1];
 
-      for (let key2 of key2s) {
+      for (const key2 of key2s) {
         delete this.map[key2][key1];
       }
     } else {

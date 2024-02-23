@@ -1,7 +1,7 @@
 import './config/env';
 console.log(`Starting app in ${process.env.NODE_ENV} mode...`);
 
-import * as express from 'express';
+import express from 'express';
 const app = express();
 
 import * as Http from 'http';
