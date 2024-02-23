@@ -1,4 +1,4 @@
-import { useErrorAlert } from '@/public/error/ErrorAlert';
+import { useErrorAlert } from '@/pages/error/ErrorAlert';
 import {
   createContext,
   ReactNode,
