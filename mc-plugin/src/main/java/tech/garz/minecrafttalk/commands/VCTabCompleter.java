@@ -1,14 +1,15 @@
 package tech.garz.minecrafttalk.commands;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import tech.garz.minecrafttalk.MinecraftTalk;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import tech.garz.minecrafttalk.MinecraftTalk;
 
 public class VCTabCompleter implements TabCompleter {
   @Override

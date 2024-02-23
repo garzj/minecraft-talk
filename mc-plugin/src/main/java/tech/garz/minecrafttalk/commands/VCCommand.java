@@ -1,17 +1,18 @@
 package tech.garz.minecrafttalk.commands;
 
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import java.util.Arrays;
+import java.util.List;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import tech.garz.minecrafttalk.MinecraftTalk;
 
-import java.util.Arrays;
-import java.util.List;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import tech.garz.minecrafttalk.MinecraftTalk;
 
 public class VCCommand implements CommandExecutor {
   public static final List<String> ARG0s = Arrays.asList("login", "logout");
@@ -19,7 +20,7 @@ public class VCCommand implements CommandExecutor {
   void login(Player player, CommandSender sender) {
     MinecraftTalk.getAPI().login(player, link -> {
       if (link == null) {
-        sender.sendMessage("§cFailed to create a login link. Please contact us server admins!");
+        sender.sendMessage("§cFailed to create a login link. Please try again later.");
       } else {
         if (sender instanceof Player) {
           // Style message

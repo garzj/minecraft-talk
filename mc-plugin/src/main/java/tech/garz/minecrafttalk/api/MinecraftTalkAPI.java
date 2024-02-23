@@ -1,26 +1,35 @@
 package tech.garz.minecrafttalk.api;
 
-import io.socket.client.Ack;
-import io.socket.client.IO;
-import io.socket.client.Manager;
-import io.socket.client.Socket;
-import io.socket.engineio.client.transports.WebSocket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import io.socket.client.Ack;
+import io.socket.client.IO;
+import io.socket.client.Manager;
+import io.socket.client.Socket;
+import io.socket.engineio.client.transports.WebSocket;
 import tech.garz.minecrafttalk.MinecraftTalk;
 import tech.garz.minecrafttalk.Util;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
 
 public class MinecraftTalkAPI implements Listener {
   private static final double MAX_TALK_DISTANCE = 16;

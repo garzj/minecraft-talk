@@ -3,9 +3,10 @@ package tech.garz.minecrafttalk;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import tech.garz.minecrafttalk.api.MinecraftTalkAPI;
 import tech.garz.minecrafttalk.commands.VCCommand;
 import tech.garz.minecrafttalk.commands.VCTabCompleter;
-import tech.garz.minecrafttalk.api.MinecraftTalkAPI;
 
 public final class MinecraftTalk extends JavaPlugin {
   public static MinecraftTalk INSTANCE;
