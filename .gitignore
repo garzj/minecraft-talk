@@ -21,7 +21,6 @@ yarn-error.log*
 **/pnpm-debug.log*
 
 # IDEs
-.vscode
 mc-plugin/.project
 
 # MacOS

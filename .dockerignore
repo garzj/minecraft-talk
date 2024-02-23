@@ -20,9 +20,6 @@
 **/yarn-error.log*
 **/pnpm-debug.log*
 
-# IDEs
-**/.vscode/
-
 # MacOS
 **/.DS_Store
 **/.AppleDouble
