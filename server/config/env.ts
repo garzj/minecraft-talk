@@ -17,11 +17,12 @@ declare global {
 process.env.NODE_ENV ??= 'production';
 process.env.PORT ??= '8080';
 
-process.env.ORIGIN ??= 'http://localhost:8080/';
-process.env.ORIGIN = process.env.ORIGIN.replace(/\/*$/, '/');
-
 const errs: string[] = [];
 if (process.env.NODE_ENV === 'production') {
+  if (!process.env.ORIGIN) {
+    errs.push('Please specify an ORIGIN.');
+  }
+
   if (!process.env.CONVERSATION_SECRET) {
     errs.push('Please specify a CONVERSATION_SECRET.');
   }
@@ -33,6 +34,9 @@ if (errs.length > 0) {
   console.error('Exiting.');
   process.exit(1);
 }
+
+process.env.ORIGIN ??= 'http://localhost:8080/';
+process.env.ORIGIN = process.env.ORIGIN.replace(/\/*$/, '/');
 
 process.env.CONVERSATION_SECRET ??= 'supersecuresecret';
 process.env.TOKEN_SECRET ??= 'supersecuresecret';
