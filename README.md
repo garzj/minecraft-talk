@@ -8,7 +8,7 @@ A minecraft plugin allowing players to communicate over a self-hosted website wh
 
 1. Clone this repository onto your server.
 2. Install [Docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/install/)
-3. Configure [./docker-compose.yml](./docker-compose.yml)
+3. Configure [./compose.yml](./compose.yml)
    - Secrets should be generated randomly
    - Replace the `8080` before the `:` with your desired website port
    - The origin should be your ip address with the port of the website or a domain that points to the site (I suggest, you use a reverse proxy to configure SSL)
