@@ -20,11 +20,19 @@ process.env.PORT ??= '8080';
 process.env.ORIGIN ??= 'http://localhost:8080/';
 process.env.ORIGIN = process.env.ORIGIN.replace(/\/*$/, '/');
 
-if (!process.env.CONVERSATION_SECRET) {
-  console.error('Please specify a CONVERSATION_SECRET.');
+const errs: string[] = [];
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.CONVERSATION_SECRET) {
+    errs.push('Please specify a CONVERSATION_SECRET.');
+  }
+  if (!process.env.TOKEN_SECRET) {
+    errs.push('Please specify a TOKEN_SECRET.');
+  }
+}
+if (errs.length > 0) {
+  console.error('Exiting.');
   process.exit(1);
 }
-if (!process.env.TOKEN_SECRET) {
-  console.error('Please specify a TOKEN_SECRET.');
-  process.exit(1);
-}
+
+process.env.CONVERSATION_SECRET ??= 'supersecuresecret';
+process.env.TOKEN_SECRET ??= 'supersecuresecret';
