@@ -3,6 +3,7 @@
     "esbenp.prettier-vscode",
     "vscjava.vscode-java-pack",
     "dbaeumer.vscode-eslint",
-    "mrmlnc.vscode-scss"
+    "mrmlnc.vscode-scss",
+    "ms-azuretools.vscode-docker"
   ]
 }
