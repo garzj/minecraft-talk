@@ -4,7 +4,7 @@
   "license": "UNLICENSED",
   "version": "1.0.0",
   "description": "A minecraft plugin allowing players to communicate over a website while playing.",
-  "author": "Johannes Garz <jojogarz123@gmail.com> (https://www.garz.tech/)",
+  "author": "Johannes Garz <johannes@garz.dev> (https://garz.dev/)",
   "scripts": {
     "install-all": "yarn && cd webapp && yarn && cd ../backend && yarn",
     "dev": "npx concurrently \"cd backend && yarn dev\" \"cd webapp && yarn start\"",
