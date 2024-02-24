@@ -42,9 +42,14 @@ export class AuthedClient {
     });
 
     // Activeness
-    socket.on('init-client-active', () => this.setActive(!this.mgr.clientApi.activeClients.has(this.token.uuid)));
+    socket.on('init-client-active', () => {
+      if (!this.mgr.clientApi.activeClients.has(this.token.uuid)) {
+        return this.setActive(true);
+      }
+      this.conn.socket.emit('set-client-active', this.isActive());
+    });
 
-    socket.on('activate-client', () => !this.isActive() && this.setActive(true));
+    socket.on('activate-client', () => this.setActive(true));
 
     // Talk
     socket.on('init-talk', () => {
@@ -60,28 +65,23 @@ export class AuthedClient {
 
   private setActive(active: boolean) {
     const activeClients = this.mgr.clientApi.activeClients;
+    const curClient = activeClients.get(this.token.uuid);
+    const curState = curClient === this;
+    if (curState === active) return;
 
+    activeClients.get(this.token.uuid)?.conn.socket.emit('set-client-active', false);
     if (active) {
-      if (!this.isActive()) {
-        activeClients.get(this.token.uuid)?.setActive(false);
-
-        activeClients.set(this.token.uuid, this);
-
-        this.conn.socket.emit('set-client-active', true);
-      }
+      activeClients.set(this.token.uuid, this);
     } else {
-      if (this.isActive()) {
-        activeClients.delete(this.token.uuid);
-
-        // Set another one active
-        this.mgr.clientApi.authedClients
-          .getValues(this.token.uuid)
-          .filter((c) => c !== this)[0]
-          ?.setActive(true);
-      }
-
-      this.conn.socket.emit('set-client-active', false);
+      // Set another one active
+      const newClient = this.mgr.clientApi.authedClients
+        .getValues(this.token.uuid)
+        .filter((c) => c !== this)
+        .at(0);
+      activeClients.delete(this.token.uuid);
+      newClient && activeClients.set(this.token.uuid, newClient);
     }
+    activeClients.get(this.token.uuid)?.conn.socket.emit('set-client-active', true);
 
     this.updateTalking();
   }
