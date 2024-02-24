@@ -27,6 +27,13 @@ export const ProvideAudio: React.FC<Props> = ({ children }) => {
       const constraints: MediaStreamConstraints = {
         audio: {
           echoCancellation: true,
+          autoGainControl: false,
+          channelCount: 2,
+          latency: 0,
+          noiseSuppression: false,
+          sampleRate: 48000,
+          sampleSize: 16,
+          volume: 1.0,
         },
         video: false,
       };
