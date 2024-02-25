@@ -1,4 +1,4 @@
-package tech.garz.minecrafttalk.api;
+package dev.garz.minecrafttalk.api;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,12 +14,12 @@ import org.bukkit.entity.Player;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import dev.garz.minecrafttalk.MinecraftTalk;
 import io.socket.client.Ack;
 import io.socket.client.IO;
 import io.socket.client.Manager;
 import io.socket.client.Socket;
 import io.socket.engineio.client.transports.WebSocket;
-import tech.garz.minecrafttalk.MinecraftTalk;
 
 public class MinecraftTalkAPI {
   private VolumeManager volumeManager = new VolumeManager(this);

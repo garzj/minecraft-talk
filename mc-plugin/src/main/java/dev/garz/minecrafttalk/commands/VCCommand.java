@@ -1,4 +1,4 @@
-package tech.garz.minecrafttalk.commands;
+package dev.garz.minecrafttalk.commands;
 
 import java.util.Arrays;
 import java.util.List;
@@ -8,11 +8,11 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import dev.garz.minecrafttalk.MinecraftTalk;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import tech.garz.minecrafttalk.MinecraftTalk;
 
 public class VCCommand implements CommandExecutor {
   ModifyCommand modifyCommand = new ModifyCommand();

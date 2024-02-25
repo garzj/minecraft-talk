@@ -1,4 +1,4 @@
-package tech.garz.minecrafttalk;
+package dev.garz.minecrafttalk;
 
 public class DoubleKey<T, U> {
   public T key0;

@@ -1,4 +1,4 @@
-package tech.garz.minecrafttalk.api;
+package dev.garz.minecrafttalk.api;
 
 public interface VCLoginCallback {
   public void run(String link);

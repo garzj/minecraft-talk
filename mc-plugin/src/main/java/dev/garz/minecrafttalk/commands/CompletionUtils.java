@@ -1,11 +1,11 @@
-package tech.garz.minecrafttalk.commands;
+package dev.garz.minecrafttalk.commands;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bukkit.entity.Player;
 
-import tech.garz.minecrafttalk.MinecraftTalk;
+import dev.garz.minecrafttalk.MinecraftTalk;
 
 public class CompletionUtils {
   public static List<String> completePlayers(String typed) {

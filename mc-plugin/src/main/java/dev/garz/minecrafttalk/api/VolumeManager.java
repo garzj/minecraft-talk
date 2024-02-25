@@ -1,4 +1,4 @@
-package tech.garz.minecrafttalk.api;
+package dev.garz.minecrafttalk.api;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,8 +16,8 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
-import tech.garz.minecrafttalk.DoubleKey;
-import tech.garz.minecrafttalk.MinecraftTalk;
+import dev.garz.minecrafttalk.DoubleKey;
+import dev.garz.minecrafttalk.MinecraftTalk;
 
 public class VolumeManager implements Listener {
   private double defaultMaxDistance;

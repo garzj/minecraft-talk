@@ -1,4 +1,4 @@
-package tech.garz.minecrafttalk.commands;
+package dev.garz.minecrafttalk.commands;
 
 import java.util.Arrays;
 import java.util.Collections;

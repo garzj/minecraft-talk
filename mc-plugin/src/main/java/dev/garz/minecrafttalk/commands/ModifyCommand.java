@@ -1,4 +1,4 @@
-package tech.garz.minecrafttalk.commands;
+package dev.garz.minecrafttalk.commands;
 
 import java.util.Arrays;
 import java.util.List;
@@ -8,7 +8,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import tech.garz.minecrafttalk.MinecraftTalk;
+import dev.garz.minecrafttalk.MinecraftTalk;
 
 public class ModifyCommand implements CommandExecutor {
   public static final List<String> ARG0s = Arrays.asList("set", "clear");

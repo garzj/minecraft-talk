@@ -1,6 +1,6 @@
 name: MinecraftTalk
 version: ${project.version}
-main: tech.garz.minecrafttalk.MinecraftTalk
+main: dev.garz.minecrafttalk.MinecraftTalk
 api-version: 1.16
 api: []
 authors: [garzj]

@@ -1,4 +1,4 @@
-package tech.garz.minecrafttalk.api;
+package dev.garz.minecrafttalk.api;
 
 import java.util.HashMap;
 import java.util.Map;

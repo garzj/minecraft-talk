@@ -1,12 +1,12 @@
-package tech.garz.minecrafttalk;
+package dev.garz.minecrafttalk;
 
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import tech.garz.minecrafttalk.api.MinecraftTalkAPI;
-import tech.garz.minecrafttalk.commands.VCCommand;
-import tech.garz.minecrafttalk.commands.VCTabCompleter;
+import dev.garz.minecrafttalk.api.MinecraftTalkAPI;
+import dev.garz.minecrafttalk.commands.VCCommand;
+import dev.garz.minecrafttalk.commands.VCTabCompleter;
 
 public final class MinecraftTalk extends JavaPlugin {
   public static MinecraftTalk INSTANCE;
