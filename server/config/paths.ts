@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 
-export const rootDir = '.';
+export const rootDir = process.cwd();
 
 export const clientDir = join(rootDir, 'build/client');
 export const clientDirExists = existsSync(clientDir);
