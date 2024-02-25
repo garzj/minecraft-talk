@@ -11,15 +11,6 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,12 +20,9 @@ import io.socket.client.Manager;
 import io.socket.client.Socket;
 import io.socket.engineio.client.transports.WebSocket;
 import tech.garz.minecrafttalk.MinecraftTalk;
-import tech.garz.minecrafttalk.Util;
 
-public class MinecraftTalkAPI implements Listener {
-  private static final double MAX_TALK_DISTANCE = 16;
-  // private static final double MAX_TALK_DISTANCE_SQUARED =
-  // Math.pow(MAX_TALK_DISTANCE, 2);
+public class MinecraftTalkAPI {
+  private VolumeManager volumeManager = new VolumeManager(this);
 
   private Manager socketManager;
   private Socket socket;
@@ -43,9 +31,11 @@ public class MinecraftTalkAPI implements Listener {
   private HashMap<UUID, TalkingPlayer> talkingPlayers = new HashMap<>();
 
   public MinecraftTalkAPI() {
-    MinecraftTalk.getInstance().getServer().getPluginManager().registerEvents(this, MinecraftTalk.getInstance());
-
     setupSocket();
+  }
+
+  public VolumeManager getVolumeManager() {
+    return volumeManager;
   }
 
   // SOCKET SETUP
@@ -158,13 +148,6 @@ public class MinecraftTalkAPI implements Listener {
 
   // TALK
 
-  double CalcVolume(double distanceSquared) {
-    // return (MAX_TALK_DISTANCE_SQUARED - distanceSquared) /
-    // MAX_TALK_DISTANCE_SQUARED;
-
-    return (MAX_TALK_DISTANCE - Math.sqrt(distanceSquared)) / MAX_TALK_DISTANCE;
-  }
-
   void EmitVolumes(Player player) {
     Bukkit.getScheduler().scheduleSyncDelayedTask(MinecraftTalk.getInstance(), () -> {
       if (!talkingPlayers.containsKey(player.getUniqueId()))
@@ -175,7 +158,7 @@ public class MinecraftTalkAPI implements Listener {
       JSONObject volumes = new JSONObject();
 
       if (player.isOnline() && !player.isDead()) {
-        for (Player neighbor : Util.getNearbyPlayers(player.getLocation(), MAX_TALK_DISTANCE + 1)) {
+        for (Player neighbor : player.getLocation().getWorld().getPlayers()) {
           if (player == neighbor)
             continue;
 
@@ -183,15 +166,12 @@ public class MinecraftTalkAPI implements Listener {
             continue; // Ignore players, that aren't in the talk
           TalkingPlayer talkingNeighbor = talkingPlayers.get(neighbor.getUniqueId());
 
-          String neighborUuid = neighbor.getUniqueId().toString();
-
-          double distanceSquared = player.getEyeLocation().distanceSquared(neighbor.getEyeLocation());
-          double vol = CalcVolume(distanceSquared);
+          double vol = volumeManager.calcVolume(player, neighbor);
           if (vol <= 0)
             continue; // Skip players that we can't hear
 
           try {
-            volumes.put(neighborUuid, vol);
+            volumes.put(neighbor.getUniqueId().toString(), vol);
 
             talkingPlayer.conns.put(neighbor.getUniqueId(), neighbor);
             talkingNeighbor.conns.put(neighbor.getUniqueId(), player);
@@ -231,40 +211,5 @@ public class MinecraftTalkAPI implements Listener {
       }
       talkingPlayer.lastConnCount = connCount;
     }, 0L);
-  }
-
-  @EventHandler
-  private void onPlayerMove(PlayerMoveEvent e) {
-    EmitVolumes(e.getPlayer());
-  }
-
-  @EventHandler
-  private void onPlayerTeleport(PlayerTeleportEvent e) {
-    EmitVolumes(e.getPlayer());
-  }
-
-  @EventHandler
-  private void onPlayerSneakToggle(PlayerToggleSneakEvent e) {
-    EmitVolumes(e.getPlayer());
-  }
-
-  @EventHandler
-  private void onPlayerRespawn(PlayerRespawnEvent e) {
-    EmitVolumes(e.getPlayer());
-  }
-
-  @EventHandler
-  private void onPlayerDeath(PlayerDeathEvent e) {
-    EmitVolumes(e.getEntity());
-  }
-
-  @EventHandler
-  private void onPlayerJoin(PlayerJoinEvent e) {
-    EmitVolumes(e.getPlayer());
-  }
-
-  @EventHandler
-  private void onPlayerQuit(PlayerQuitEvent e) {
-    EmitVolumes(e.getPlayer());
   }
 }

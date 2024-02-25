@@ -9,4 +9,4 @@ commands:
   vc:
     aliases: [voicechat]
     description: Lets you join the voice chat.
-    usage: §c/vc [login|logout] [<player>]
+    usage: §c/vc { [login|logout] [<player>] } | { modify (set|clear) maxdistance <from> <to> <value> }

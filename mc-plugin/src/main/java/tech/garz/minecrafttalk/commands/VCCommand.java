@@ -15,7 +15,10 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import tech.garz.minecrafttalk.MinecraftTalk;
 
 public class VCCommand implements CommandExecutor {
-  public static final List<String> ARG0s = Arrays.asList("login", "logout");
+  ModifyCommand modifyCommand = new ModifyCommand();
+
+  public static final List<String> ARG0s = Arrays.asList("login", "logout", "modify");
+  public static final List<String> PLAYER_ARG0s = Arrays.asList("login", "logout");
 
   void login(Player player, CommandSender sender) {
     MinecraftTalk.getAPI().login(player, link -> {
@@ -52,37 +55,40 @@ public class VCCommand implements CommandExecutor {
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    // Get the player
-    Player player = null;
-    if (sender instanceof Player) {
-      player = (Player) sender;
-    }
-    if (args.length >= 2) {
-      player = MinecraftTalk.getInstance().getServer().getPlayerExact(args[1]);
+    if (args.length == 0 || PLAYER_ARG0s.contains(args[0])) {
+      // Get the player
+      Player player = null;
+      if (sender instanceof Player) {
+        player = (Player) sender;
+      }
+      if (args.length >= 2) {
+        player = MinecraftTalk.getInstance().getServer().getPlayerExact(args[1]);
+        if (player == null) {
+          sender.sendMessage("§cCould not find the player " + args[1] + ".");
+          return true;
+        }
+      }
       if (player == null) {
-        sender.sendMessage("§cCould not find the player " + args[1] + ".");
+        sender.sendMessage("§cPlease specify a player.");
         return true;
       }
-    }
-    if (player == null) {
-      sender.sendMessage("§cPlease specify a player.");
-      return true;
-    }
 
-    // You need op to control other players
-    if (player != sender && !sender.isOp()) {
-      sender.sendMessage("§cYou don't have the permission to login as other players.");
-      return true;
-    }
+      // You need op to control other players
+      if (player != sender && !sender.isOp()) {
+        sender.sendMessage("§cYou don't have the permission to login as other players.");
+        return true;
+      }
 
-    // Command execution
-    if (args.length == 0 || args[0].equals("login")) {
-      login(player, sender);
-    } else if (args[0].equals("logout")) {
-      logout(player, sender);
-    } else {
-      return false;
+      if (args.length == 0 || args[0].equals("login")) {
+        login(player, sender);
+      } else if (args[0].equals("logout")) {
+        logout(player, sender);
+      }
+      return true;
+    } else if (args[0].equals("modify")) {
+      String[] modifyArgs = Arrays.copyOfRange(args, 1, args.length);
+      return modifyCommand.onCommand(sender, command, label, modifyArgs);
     }
-    return true;
+    return false;
   }
 }

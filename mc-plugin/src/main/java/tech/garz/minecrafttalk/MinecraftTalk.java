@@ -43,6 +43,7 @@ public final class MinecraftTalk extends JavaPlugin {
     config.options().copyDefaults(true);
     config.addDefault("socket-uri", "http://localhost:8080/");
     config.addDefault("conversation-secret", "LhKB7U1svggGYx7ZGaLb");
+    config.addDefault("default-max-distance", 16);
 
     saveConfig();
   }
