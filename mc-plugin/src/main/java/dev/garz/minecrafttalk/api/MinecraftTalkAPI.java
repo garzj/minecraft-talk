@@ -157,27 +157,25 @@ public class MinecraftTalkAPI {
       // Volumes to nearby players
       JSONObject volumes = new JSONObject();
 
-      if (player.isOnline() && !player.isDead()) {
-        for (Player neighbor : player.getLocation().getWorld().getPlayers()) {
-          if (player == neighbor)
-            continue;
+      for (Player neighbor : MinecraftTalk.getInstance().getServer().getOnlinePlayers()) {
+        if (player == neighbor)
+          continue;
 
-          if (!talkingPlayers.containsKey(neighbor.getUniqueId()))
-            continue; // Ignore players, that aren't in the talk
-          TalkingPlayer talkingNeighbor = talkingPlayers.get(neighbor.getUniqueId());
+        if (!talkingPlayers.containsKey(neighbor.getUniqueId()))
+          continue; // Ignore players, that aren't in the talk
+        TalkingPlayer talkingNeighbor = talkingPlayers.get(neighbor.getUniqueId());
 
-          double vol = volumeManager.calcVolume(player, neighbor);
-          if (vol <= 0)
-            continue; // Skip players that we can't hear
+        double vol = volumeManager.calcVolume(player, neighbor);
+        if (vol <= 0)
+          continue; // Skip players that we can't hear
 
-          try {
-            volumes.put(neighbor.getUniqueId().toString(), vol);
+        try {
+          volumes.put(neighbor.getUniqueId().toString(), vol);
 
-            talkingPlayer.conns.put(neighbor.getUniqueId(), neighbor);
-            talkingNeighbor.conns.put(neighbor.getUniqueId(), player);
-          } catch (JSONException e) {
-            e.printStackTrace();
-          }
+          talkingPlayer.conns.put(neighbor.getUniqueId(), neighbor);
+          talkingNeighbor.conns.put(neighbor.getUniqueId(), player);
+        } catch (JSONException e) {
+          e.printStackTrace();
         }
       }
 
