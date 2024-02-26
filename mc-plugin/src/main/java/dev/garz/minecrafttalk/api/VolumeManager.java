@@ -78,7 +78,7 @@ public class VolumeManager implements Listener {
     if (p1.getEyeLocation().distanceSquared(p2.getEyeLocation()) > Math.pow(maxDistance, 2)) {
       return 0;
     }
-    return Math.max(0, maxDistance - p1.getEyeLocation().distance(p2.getEyeLocation()));
+    return Math.max(0, (maxDistance - p1.getEyeLocation().distance(p2.getEyeLocation())) / maxDistance);
   }
 
   public void disable() {
