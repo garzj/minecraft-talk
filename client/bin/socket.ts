@@ -9,6 +9,14 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
+export const useSocketInit = () => {
+  useEffect(() => {
+    return () => {
+      socket.disconnect();
+      socket.connect();
+    };
+  }, []);
+};
 export const useSocketOn = (event: string, handler: (...args: any[]) => void) =>
   useEffect(() => {
     socket.on(event, handler);
@@ -30,7 +38,7 @@ export const useSocketLoader = (loader: () => (() => void) | void) => {
       onUnload = null;
     };
 
-    handleLoad();
+    socket.connected && handleLoad();
     socket.on('disconnect', handleUnload);
     socket.on('connect', handleLoad);
     socket.on('reconnect', handleLoad);

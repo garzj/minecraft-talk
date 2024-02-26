@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { useSocketInit } from './bin/socket';
 import { ProvideAudio } from './context/audio';
 import { ProvideAuth } from './context/auth';
 import { ErrorAlert } from './pages/error/ErrorAlert';
@@ -11,6 +12,8 @@ const Expired = lazy(() => import('./pages/Expired'));
 const Talk = lazy(() => import('./talk/Talk'));
 
 export const App: React.FC = () => {
+  useSocketInit();
+
   return (
     <BrowserRouter>
       <Suspense fallback={'Loading...'}>
