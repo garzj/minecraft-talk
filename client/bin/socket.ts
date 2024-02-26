@@ -32,10 +32,12 @@ export const useSocketLoader = (loader: () => (() => void) | void) => {
 
     handleLoad();
     socket.on('disconnect', handleUnload);
+    socket.on('connect', handleLoad);
     socket.on('reconnect', handleLoad);
 
     return () => {
       socket.off('disconnect', handleUnload);
+      socket.off('connect', handleLoad);
       socket.off('reconnect', handleLoad);
 
       handleUnload();
