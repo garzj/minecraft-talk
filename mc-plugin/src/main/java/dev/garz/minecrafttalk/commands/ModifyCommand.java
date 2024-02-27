@@ -12,6 +12,7 @@ import dev.garz.minecrafttalk.MinecraftTalk;
 
 public class ModifyCommand implements CommandExecutor {
   public static final List<String> ARG0s = Arrays.asList("set", "clear");
+  public static final List<String> ARG1s = Arrays.asList("maxdistance");
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
