@@ -104,7 +104,7 @@ public class MinecraftTalkAPI {
 
         Player player = pl.getServer().getPlayer(uuid);
         if (player != null) {
-          EmitVolumes(player);
+          EmitBidirectionalVolumes(player);
         }
       } else {
         talkingPlayers.remove(uuid);
@@ -149,32 +149,41 @@ public class MinecraftTalkAPI {
 
   // TALK
 
-  void EmitVolumes(Player player) {
+  void EmitBidirectionalVolumes(Player center) {
+    for (Player neighbor : MinecraftTalk.getInstance().getServer().getOnlinePlayers()) {
+      if (neighbor == center)
+        continue;
+      // todo: could optimize..
+      EmitVolumes(neighbor);
+    }
+    EmitVolumes(center);
+  }
+
+  void EmitVolumes(Player dst) {
     Bukkit.getScheduler().scheduleSyncDelayedTask(MinecraftTalk.getInstance(), () -> {
-      if (!talkingPlayers.containsKey(player.getUniqueId()))
+      if (!talkingPlayers.containsKey(dst.getUniqueId()))
         return;
-      TalkingPlayer talkingPlayer = talkingPlayers.get(player.getUniqueId());
+      TalkingPlayer talkingDst = talkingPlayers.get(dst.getUniqueId());
 
       // Volumes to nearby players
       JSONObject volumes = new JSONObject();
 
-      for (Player neighbor : MinecraftTalk.getInstance().getServer().getOnlinePlayers()) {
-        if (player == neighbor)
+      for (Player src : MinecraftTalk.getInstance().getServer().getOnlinePlayers()) {
+        if (dst == src)
           continue;
 
-        if (!talkingPlayers.containsKey(neighbor.getUniqueId()))
+        if (!talkingPlayers.containsKey(src.getUniqueId()))
           continue; // Ignore players, that aren't in the talk
-        TalkingPlayer talkingNeighbor = talkingPlayers.get(neighbor.getUniqueId());
+        // TalkingPlayer talkingSrc = talkingPlayers.get(src.getUniqueId());
 
-        double vol = volumeManager.calcVolume(player, neighbor);
+        double vol = volumeManager.calcVolume(dst, src);
         if (vol <= 0)
           continue; // Skip players that we can't hear
 
         try {
-          volumes.put(neighbor.getUniqueId().toString(), vol);
+          volumes.put(src.getUniqueId().toString(), vol);
 
-          talkingPlayer.conns.put(neighbor.getUniqueId(), neighbor);
-          talkingNeighbor.conns.put(neighbor.getUniqueId(), player);
+          talkingDst.srcConns.put(src.getUniqueId(), src);
         } catch (JSONException e) {
           e.printStackTrace();
         }
@@ -182,8 +191,8 @@ public class MinecraftTalkAPI {
 
       // Emit volumes of 0 for players that got out of range
       Set<UUID> connsToRemove = new HashSet<>();
-      for (Player conn : talkingPlayer.conns.values()) {
-        String connUuid = conn.getUniqueId().toString();
+      for (Player src : talkingDst.srcConns.values()) {
+        String connUuid = src.getUniqueId().toString();
 
         if (!volumes.has(connUuid)) {
           try {
@@ -192,23 +201,23 @@ public class MinecraftTalkAPI {
             e.printStackTrace();
           }
 
-          connsToRemove.add(conn.getUniqueId());
-          TalkingPlayer otherPlayer = talkingPlayers.get(conn.getUniqueId());
-          if (otherPlayer != null) {
-            otherPlayer.conns.remove(player.getUniqueId());
+          connsToRemove.add(src.getUniqueId());
+          TalkingPlayer talkingSrc = talkingPlayers.get(src.getUniqueId());
+          if (talkingSrc != null) {
+            talkingSrc.srcConns.remove(dst.getUniqueId());
           }
         }
       }
-      for (UUID uuid : connsToRemove) {
-        talkingPlayer.conns.remove(uuid);
+      for (UUID connUuid : connsToRemove) {
+        talkingDst.srcConns.remove(connUuid);
       }
 
       // We don't wanna keep emitting empty volume maps
       int connCount = volumes.length();
-      if (connCount > 0 || talkingPlayer.lastConnCount > 0) {
-        socket.emit("update-vols", player.getUniqueId().toString(), volumes);
+      if (connCount > 0 || talkingDst.lastConnCount > 0) {
+        socket.emit("update-vols", dst.getUniqueId().toString(), volumes);
       }
-      talkingPlayer.lastConnCount = connCount;
+      talkingDst.lastConnCount = connCount;
     }, 0L);
   }
 }

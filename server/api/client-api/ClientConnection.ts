@@ -12,7 +12,8 @@ export class ClientConnection {
   constructor(
     public client1: AuthedClient,
     public client2: AuthedClient,
-    public volume: number,
+    public dstVolume1: number,
+    public dstVolume2: number,
   ) {
     this.connect();
   }
@@ -21,7 +22,7 @@ export class ClientConnection {
     return {
       initiator,
       turnUser: genTurnUser(from.token.uuid),
-      volume: this.volume,
+      volume: from === this.client1 ? this.dstVolume1 : this.dstVolume2,
       to: {
         player: to.getPlayerData(),
         socketId: to.getSocketId(),
@@ -44,12 +45,25 @@ export class ClientConnection {
     }
   }
 
-  updateVolume(volume: number) {
-    if (volume === this.volume) return;
-    this.volume = volume;
+  updateVolume(client: AuthedClient, volume: number) {
+    if (![this.client1, this.client2].includes(client)) {
+      return console.error(
+        `Failed to update volume of client ${client.getSocketId()}. ` +
+          `Only ${this.client1.getSocketId()} and ${this.client2.getSocketId()} ` +
+          `are in this connection.`,
+      );
+    }
 
-    this.client1.conn.socket.emit('rtc-update-vol', this.client2.getSocketId(), volume);
-    this.client2.conn.socket.emit('rtc-update-vol', this.client1.getSocketId(), volume);
+    const isClient1 = client === this.client1;
+    if (volume === (isClient1 ? this.dstVolume1 : this.dstVolume2)) return;
+    if (isClient1) {
+      this.dstVolume1 = volume;
+    } else {
+      this.dstVolume2 = volume;
+    }
+
+    const otherClient = isClient1 ? this.client2 : this.client1;
+    client.conn.socket.emit('rtc-update-vol', otherClient.getSocketId(), volume);
   }
 
   private disconnect() {

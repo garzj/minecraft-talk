@@ -17,12 +17,11 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
-import dev.garz.minecrafttalk.DoubleKey;
 import dev.garz.minecrafttalk.MinecraftTalk;
 
 public class VolumeManager implements Listener {
   private double defaultMaxDistance;
-  private Map<DoubleKey<UUID, UUID>, Double> maxDistances = new HashMap<>();
+  private Map<UUID, Map<UUID, Double>> maxDistances = new HashMap<>();
 
   private MinecraftTalk instance;
   private MinecraftTalkAPI talkApi;
@@ -54,37 +53,39 @@ public class VolumeManager implements Listener {
     EmitAllVolumes();
   }
 
-  public boolean setMaxDistance(Player p1, Player p2, double maxDistance) {
-    if (p1 == p2)
+  public boolean setMaxDistance(Player dst, Player src, double maxDistance) {
+    if (dst == src)
       return false;
-    maxDistances.put(new DoubleKey<>(p1.getUniqueId(), p2.getUniqueId()), maxDistance);
-    talkApi.EmitVolumes(p1);
-    talkApi.EmitVolumes(p2);
+    maxDistances.computeIfAbsent(dst.getUniqueId(), (key) -> new HashMap<>()).put(src.getUniqueId(), maxDistance);
+    talkApi.EmitVolumes(dst);
     return true;
   }
 
-  public boolean clearMaxDistance(Player p1, Player p2) {
-    if (p1 == p2)
+  public boolean clearMaxDistance(Player dst, Player src) {
+    if (dst == src)
       return false;
-    maxDistances.remove(new DoubleKey<>(p1.getUniqueId(), p2.getUniqueId()));
-    talkApi.EmitVolumes(p1);
-    talkApi.EmitVolumes(p2);
+    maxDistances.computeIfPresent(dst.getUniqueId(), (key, fromMap) -> {
+      fromMap.remove(src.getUniqueId());
+      return fromMap.isEmpty() ? null : fromMap;
+    });
+    talkApi.EmitVolumes(dst);
     return true;
   }
 
-  public double calcVolume(Player p1, Player p2) {
-    double maxDistance = maxDistances.getOrDefault(new DoubleKey<>(p1.getUniqueId(), p2.getUniqueId()),
-        defaultMaxDistance);
+  public double calcVolume(Player dst, Player src) {
+    Map<UUID, Double> fromMap = maxDistances.get(dst.getUniqueId());
+    double maxDistance = fromMap == null ? defaultMaxDistance
+        : fromMap.getOrDefault(src.getUniqueId(), defaultMaxDistance);
     if (Double.isInfinite(maxDistance))
       return 1;
-    if (p1.getWorld() != p2.getWorld()
-        || Arrays.stream(new Player[] { p1, p2 }).anyMatch(p -> !p.isOnline() || p.isDead())) {
+    if (dst.getWorld() != src.getWorld()
+        || Arrays.stream(new Player[] { dst, src }).anyMatch(p -> !p.isOnline() || p.isDead())) {
       return 0;
     }
-    if (p1.getEyeLocation().distanceSquared(p2.getEyeLocation()) > Math.pow(maxDistance, 2)) {
+    if (dst.getEyeLocation().distanceSquared(src.getEyeLocation()) > Math.pow(maxDistance, 2)) {
       return 0;
     }
-    return Math.max(0, (maxDistance - p1.getEyeLocation().distance(p2.getEyeLocation())) / maxDistance);
+    return Math.max(0, (maxDistance - dst.getEyeLocation().distance(src.getEyeLocation())) / maxDistance);
   }
 
   public void disable() {
@@ -93,36 +94,36 @@ public class VolumeManager implements Listener {
 
   @EventHandler
   private void onPlayerMove(PlayerMoveEvent e) {
-    talkApi.EmitVolumes(e.getPlayer());
+    talkApi.EmitBidirectionalVolumes(e.getPlayer());
   }
 
   @EventHandler
   private void onPlayerTeleport(PlayerTeleportEvent e) {
-    talkApi.EmitVolumes(e.getPlayer());
+    talkApi.EmitBidirectionalVolumes(e.getPlayer());
   }
 
   @EventHandler
   private void onPlayerSneakToggle(PlayerToggleSneakEvent e) {
-    talkApi.EmitVolumes(e.getPlayer());
+    talkApi.EmitBidirectionalVolumes(e.getPlayer());
   }
 
   @EventHandler
   private void onPlayerRespawn(PlayerRespawnEvent e) {
-    talkApi.EmitVolumes(e.getPlayer());
+    talkApi.EmitBidirectionalVolumes(e.getPlayer());
   }
 
   @EventHandler
   private void onPlayerDeath(PlayerDeathEvent e) {
-    talkApi.EmitVolumes(e.getEntity());
+    talkApi.EmitBidirectionalVolumes(e.getEntity());
   }
 
   @EventHandler
   private void onPlayerJoin(PlayerJoinEvent e) {
-    talkApi.EmitVolumes(e.getPlayer());
+    talkApi.EmitBidirectionalVolumes(e.getPlayer());
   }
 
   @EventHandler
   private void onPlayerQuit(PlayerQuitEvent e) {
-    talkApi.EmitVolumes(e.getPlayer());
+    talkApi.EmitBidirectionalVolumes(e.getPlayer());
   }
 }

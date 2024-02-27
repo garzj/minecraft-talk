@@ -43,31 +43,35 @@ export class ServerAPI extends API<ServerConn> {
     });
   }
 
-  updateVolume(uuid1: string, uuid2: string) {
+  updateVolume(dst: string, src: string) {
     // Get loudest volume (of all servers that have these players connected)
     let volume = 0;
     for (const server of this.apiConns) {
-      const serverVolume = server.playerVols.get(uuid1, uuid2);
+      const serverVolume = server.playerVols.get(dst, src);
       if (serverVolume !== undefined && serverVolume > volume) {
         volume = serverVolume;
       }
     }
 
     // Update player connections
-    const playerConn = this.playerConns.get(uuid1, uuid2);
-    const client1 = this.talkingClients.get(uuid1);
-    const client2 = this.talkingClients.get(uuid2);
+    const playerConn = this.playerConns.get(dst, src);
+    const dstClient = this.talkingClients.get(dst);
+    const srcClient = this.talkingClients.get(src);
 
-    if (volume === 0 || !client1 || !client2) {
+    const allZero =
+      volume === 0 &&
+      (!playerConn ||
+        (playerConn.client1.getPlayerData().uuid === dst ? playerConn.dstVolume2 : playerConn.dstVolume1) === 0);
+    if (!dstClient || !srcClient || allZero) {
       playerConn?.destroy();
-      this.playerConns.unset(uuid1, uuid2);
+      this.playerConns.unset(dst, src);
       return;
     }
 
     if (!playerConn) {
-      this.playerConns.set(uuid1, uuid2, new ClientConnection(client1, client2, volume));
+      this.playerConns.set(dst, src, new ClientConnection(dstClient, srcClient, volume, 0));
     } else {
-      playerConn.updateVolume(volume);
+      playerConn.updateVolume(dstClient, volume);
     }
   }
 }

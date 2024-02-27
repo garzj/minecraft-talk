@@ -1,12 +1,12 @@
 import { Socket } from 'socket.io';
-import { RelationMap } from '../../../shared/map/RelationMap';
+import { NestedMap } from '../../../shared/map/NestedMap';
 import { signObj } from '../../bin/sign-obj';
 import { Token } from '../../bin/token/Token';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
 
 export class ServerConn extends APIConn {
-  playerVols: RelationMap<number> = new RelationMap();
+  playerVols: NestedMap<number> = new NestedMap();
 
   constructor(apiMgr: APIManager, socket: Socket) {
     super(apiMgr, socket);
@@ -14,17 +14,17 @@ export class ServerConn extends APIConn {
     this.setupApi();
   }
 
-  private updateVolume(uuid1: string, uuid2: string, volume: number) {
-    if (!this.mgr.serverApi.talkingClients.has(uuid1)) return;
-    if (!this.mgr.serverApi.talkingClients.has(uuid2)) return;
+  private updateVolume(dst: string, src: string, volume: number) {
+    if (!this.mgr.serverApi.talkingClients.has(dst)) return;
+    if (!this.mgr.serverApi.talkingClients.has(src)) return;
 
     if (volume === 0) {
-      this.playerVols.unset(uuid1, uuid2);
+      this.playerVols.unset(dst, src);
     } else {
-      this.playerVols.set(uuid1, uuid2, volume);
+      this.playerVols.set(dst, src, volume);
     }
 
-    this.mgr.serverApi.updateVolume(uuid1, uuid2);
+    this.mgr.serverApi.updateVolume(dst, src);
   }
 
   private setupApi() {
@@ -58,17 +58,17 @@ export class ServerConn extends APIConn {
     });
 
     // Volume updates
-    this.socket.on('update-vols', (uuid1, volumes: { [uuid: string]: number }) => {
-      for (const [uuid2, volume] of Object.entries(volumes)) {
-        this.updateVolume(uuid1, uuid2, volume);
+    this.socket.on('update-vols', (dst, volumes: { [src: string]: number }) => {
+      for (const [src, volume] of Object.entries(volumes)) {
+        this.updateVolume(dst, src, volume);
       }
     });
   }
 
   onDisconnect() {
     // Disconnect -> set all volumes to 0
-    this.playerVols.forEach((_, uuid1, uuid2) => {
-      this.updateVolume(uuid1, uuid2, 0);
+    this.playerVols.forEach((_, dst, src) => {
+      this.updateVolume(dst, src, 0);
     });
   }
 }
