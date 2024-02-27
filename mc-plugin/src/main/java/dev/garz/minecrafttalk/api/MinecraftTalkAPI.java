@@ -115,6 +115,7 @@ public class MinecraftTalkAPI {
   }
 
   public void disable() {
+    this.volumeManager.disable();
     socket.off();
     socket.disconnect();
     socketManager.off();
