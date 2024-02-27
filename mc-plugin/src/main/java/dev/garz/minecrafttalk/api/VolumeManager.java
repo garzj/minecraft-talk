@@ -24,29 +24,33 @@ public class VolumeManager implements Listener {
   private double defaultMaxDistance;
   private Map<DoubleKey<UUID, UUID>, Double> maxDistances = new HashMap<>();
 
+  private MinecraftTalk instance;
   private MinecraftTalkAPI talkApi;
 
   public VolumeManager(MinecraftTalkAPI talkApi) {
     this.talkApi = talkApi;
 
-    MinecraftTalk.getInstance().getServer().getPluginManager().registerEvents(this, MinecraftTalk.getInstance());
+    instance = MinecraftTalk.getInstance();
+    instance.getServer().getPluginManager().registerEvents(this, MinecraftTalk.getInstance());
 
     resetDefaultMaxDistance();
   }
 
   private void EmitAllVolumes() {
-    for (Player p : MinecraftTalk.getInstance().getServer().getOnlinePlayers()) {
+    for (Player p : instance.getServer().getOnlinePlayers()) {
       talkApi.EmitVolumes(p);
     }
   }
 
   public void setDefaultMaxDistance(double value) {
+    instance.getConfig().set("default-max-distance", value);
     defaultMaxDistance = value;
+    instance.saveConfig();
     EmitAllVolumes();
   }
 
   public void resetDefaultMaxDistance() {
-    defaultMaxDistance = MinecraftTalk.getInstance().getConfig().getDouble("default-max-distance");
+    setDefaultMaxDistance(16.0);
     EmitAllVolumes();
   }
 
