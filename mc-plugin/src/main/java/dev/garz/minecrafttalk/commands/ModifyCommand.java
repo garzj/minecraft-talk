@@ -12,7 +12,7 @@ import dev.garz.minecrafttalk.MinecraftTalk;
 
 public class ModifyCommand implements CommandExecutor {
   public static final List<String> ARG0s = Arrays.asList("set", "clear");
-  public static final List<String> ARG1s = Arrays.asList("maxdistance");
+  public static final List<String> ARG1s = Arrays.asList("maxdistance", "defaultmaxdistance");
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -54,6 +54,23 @@ public class ModifyCommand implements CommandExecutor {
       }
       if (!success) {
         sender.sendMessage("§cThe specified players cannot be the same.");
+      }
+      return true;
+    } else if (args[1].equals("defaultmaxdistance")) {
+      if (args[0].equals("set")) {
+        if (args.length < 3)
+          return false;
+
+        double dist;
+        try {
+          dist = Double.parseDouble(args[2]);
+        } catch (NumberFormatException e) {
+          return false;
+        }
+
+        MinecraftTalk.getAPI().getVolumeManager().setDefaultMaxDistance(dist);
+      } else {
+        MinecraftTalk.getAPI().getVolumeManager().resetDefaultMaxDistance();
       }
       return true;
     }

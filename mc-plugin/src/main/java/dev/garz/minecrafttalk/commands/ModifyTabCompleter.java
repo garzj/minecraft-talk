@@ -25,15 +25,20 @@ public class ModifyTabCompleter implements TabCompleter {
       return Collections.emptyList();
     }
 
-    if (args.length == 3) {
-      return CompletionUtils.completePlayers(args[2]);
-    } else if (args[2].isEmpty()) {
-      return Collections.emptyList();
+    if (args[1].equals("maxdistance")) {
+      if (args.length == 3) {
+        return CompletionUtils.completePlayers(args[2]);
+      } else if (args[2].isEmpty()) {
+        return Collections.emptyList();
+      }
+
+      if (args.length == 4) {
+        return CompletionUtils.completePlayers(args[3], args[2]);
+      } else if (args[3].isEmpty()) {
+        return Collections.emptyList();
+      }
     }
 
-    if (args.length == 4) {
-      return CompletionUtils.completePlayers(args[3], args[2]);
-    }
     return Collections.emptyList();
   }
 }
