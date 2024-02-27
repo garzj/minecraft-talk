@@ -14,12 +14,12 @@ export const ListPlayer: React.FC<Props> = ({ player, volume, connState }) => {
     <div className='player'>
       <img src={avatarSrc} alt={player.name} className='player-avatar' />
       <div className='player-name'>{player.name}</div>
-      {volume && (
-        <div className='volume'>
-          <div className='volume-percentage' style={{ width: `${Math.floor(volume * 100)}%` }}></div>
+      {!!volume && (
+        <div className='player-volume'>
+          <div className='player-volume-percentage' style={{ width: `${Math.floor(volume * 100)}%` }}></div>
         </div>
       )}
-      {connState && <div className='player-conn-state'>{connState}</div>}
+      {connState && <div className='player-conn-state' data-state={connState}></div>}
     </div>
   );
 };
