@@ -3,6 +3,7 @@ package dev.garz.minecrafttalk.api;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,7 +22,7 @@ import dev.garz.minecrafttalk.MinecraftTalk;
 
 public class VolumeManager implements Listener {
   private double defaultMaxDistance;
-  private Map<DoubleKey<Player, Player>, Double> maxDistances = new HashMap<>();
+  private Map<DoubleKey<UUID, UUID>, Double> maxDistances = new HashMap<>();
 
   private MinecraftTalkAPI talkApi;
 
@@ -52,7 +53,7 @@ public class VolumeManager implements Listener {
   public boolean setMaxDistance(Player p1, Player p2, double maxDistance) {
     if (p1 == p2)
       return false;
-    maxDistances.put(new DoubleKey<>(p1, p2), maxDistance);
+    maxDistances.put(new DoubleKey<>(p1.getUniqueId(), p2.getUniqueId()), maxDistance);
     talkApi.EmitVolumes(p1);
     talkApi.EmitVolumes(p2);
     return true;
@@ -61,14 +62,15 @@ public class VolumeManager implements Listener {
   public boolean clearMaxDistance(Player p1, Player p2) {
     if (p1 == p2)
       return false;
-    maxDistances.remove(new DoubleKey<>(p1, p2));
+    maxDistances.remove(new DoubleKey<>(p1.getUniqueId(), p2.getUniqueId()));
     talkApi.EmitVolumes(p1);
     talkApi.EmitVolumes(p2);
     return true;
   }
 
   public double calcVolume(Player p1, Player p2) {
-    double maxDistance = maxDistances.getOrDefault(new DoubleKey<>(p1, p2), defaultMaxDistance);
+    double maxDistance = maxDistances.getOrDefault(new DoubleKey<>(p1.getUniqueId(), p2.getUniqueId()),
+        defaultMaxDistance);
     if (Double.isInfinite(maxDistance))
       return 1;
     if (p1.getWorld() != p2.getWorld()
