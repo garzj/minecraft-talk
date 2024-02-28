@@ -37,8 +37,8 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
   // Init conn
   useSocketLoader(
     useCallback(() => {
-      socketEmit('init-conn');
-    }, []),
+      socketEmit('init-conn', conn.to.socketId);
+    }, [conn]),
   );
 
   useEffect(() => {

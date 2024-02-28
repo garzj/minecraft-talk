@@ -36,12 +36,14 @@ export class ClientConnection {
 
     // Reemit messages between clients
     for (const event of ['rtc-desc', 'rtc-ice', 'rtc-err']) {
-      this.socketOn(this.client1, event, (...args: unknown[]) =>
-        this.client2.conn.socket.emit(event, this.client1.getSocketId(), ...args),
-      );
-      this.socketOn(this.client2, event, (...args: unknown[]) =>
-        this.client1.conn.socket.emit(event, this.client2.getSocketId(), ...args),
-      );
+      this.socketOn(this.client1, event, (socketId: unknown, ...args: unknown[]) => {
+        if (socketId !== this.client2.getSocketId()) return;
+        this.client2.conn.socket.emit(event, this.client1.getSocketId(), ...args);
+      });
+      this.socketOn(this.client2, event, (socketId: unknown, ...args: unknown[]) => {
+        if (socketId !== this.client1.getSocketId()) return;
+        this.client1.conn.socket.emit(event, this.client2.getSocketId(), ...args);
+      });
     }
   }
 

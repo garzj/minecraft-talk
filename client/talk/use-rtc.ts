@@ -20,10 +20,14 @@ export function useRtc(
     if (errors.length > 0) {
       console.warn(`RTC to ${conn.to.player.uuid} failed. Error list:`, errors);
 
-      socketEmit('rtc-err', errors.length);
+      socketEmit('rtc-err', conn.to.socketId, errors.length);
     }
-  }, [errors, conn.to.player]);
-  const onRtcErr = useCallback((count: unknown) => console.warn(`The other client errored. (${count})`), []);
+  }, [errors, conn]);
+  const onRtcErr = useCallback(
+    (socketId: string, count: unknown) =>
+      socketId === conn.to.socketId && console.warn(`The other client errored. (${count})`),
+    [conn],
+  );
   useSocketOn('rtc-err', onRtcErr);
 
   // RTC Connection
@@ -91,9 +95,9 @@ export function useRtc(
   // Emit ICE candidates
   useEffect(() => {
     rtc.onicecandidate = (e) => {
-      socketEmit('rtc-ice', e.candidate);
+      socketEmit('rtc-ice', conn.to.socketId, e.candidate);
     };
-  }, [rtc]);
+  }, [rtc, conn]);
 
   // Receive ICE candidates
   const onIceCand = useCallback(
@@ -118,11 +122,11 @@ export function useRtc(
       rtc
         .setLocalDescription(sdp)
         .then(() => {
-          socketEmit('rtc-desc', rtc.localDescription);
+          socketEmit('rtc-desc', conn.to.socketId, rtc.localDescription);
         })
         .catch(addError);
     },
-    [rtc],
+    [rtc, conn],
   );
 
   // Receive and apply remote descs
