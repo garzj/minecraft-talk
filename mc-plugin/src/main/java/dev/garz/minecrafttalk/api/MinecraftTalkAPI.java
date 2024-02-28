@@ -174,7 +174,6 @@ public class MinecraftTalkAPI {
 
         if (!talkingPlayers.containsKey(src.getUniqueId()))
           continue; // Ignore players, that aren't in the talk
-        // TalkingPlayer talkingSrc = talkingPlayers.get(src.getUniqueId());
 
         double vol = volumeManager.calcVolume(dst, src);
         if (vol <= 0)
@@ -182,11 +181,11 @@ public class MinecraftTalkAPI {
 
         try {
           volumes.put(src.getUniqueId().toString(), vol);
-
-          talkingDst.srcConns.put(src.getUniqueId(), src);
         } catch (JSONException e) {
           e.printStackTrace();
         }
+
+        talkingDst.srcConns.put(src.getUniqueId(), src);
       }
 
       // Emit volumes of 0 for players that got out of range
@@ -202,10 +201,6 @@ public class MinecraftTalkAPI {
           }
 
           connsToRemove.add(src.getUniqueId());
-          TalkingPlayer talkingSrc = talkingPlayers.get(src.getUniqueId());
-          if (talkingSrc != null) {
-            talkingSrc.srcConns.remove(dst.getUniqueId());
-          }
         }
       }
       for (UUID connUuid : connsToRemove) {
