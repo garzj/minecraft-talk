@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RTCConnData } from '../../shared/types/rtc';
-import { useSocketOn } from '../bin/socket';
+import { socketEmit, useSocketLoader, useSocketOn } from '../bin/socket';
 import { ListPlayer } from './ListPlayer';
 import { useRtc } from './use-rtc';
 
@@ -33,6 +33,13 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
     [conn],
   );
   useSocketOn('rtc-update-vol', onUpdateVol);
+
+  // Init conn
+  useSocketLoader(
+    useCallback(() => {
+      socketEmit('init-conn');
+    }, []),
+  );
 
   useEffect(() => {
     if (!audio.current) return;

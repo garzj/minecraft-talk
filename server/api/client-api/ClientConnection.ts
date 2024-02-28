@@ -61,9 +61,16 @@ export class ClientConnection {
     } else {
       this.dstVolume2 = volume;
     }
+    this.emitVolumeUpdate(client);
+  }
 
-    const otherClient = isClient1 ? this.client2 : this.client1;
-    client.conn.socket.emit('rtc-update-vol', otherClient.getSocketId(), volume);
+  emitVolumeUpdate(client: AuthedClient) {
+    const otherClient = client === this.client1 ? this.client2 : this.client1;
+    client.conn.socket.emit(
+      'rtc-update-vol',
+      otherClient.getSocketId(),
+      client === this.client1 ? this.dstVolume1 : this.dstVolume2,
+    );
   }
 
   private disconnect() {

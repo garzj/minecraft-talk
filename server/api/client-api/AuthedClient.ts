@@ -57,6 +57,13 @@ export class AuthedClient {
 
       this.updateTalking();
     });
+
+    // Connection
+    socket.on('init-conn', () => {
+      for (const conn of this.mgr.serverApi.playerConns.getValues(this.token.uuid)) {
+        conn.emitVolumeUpdate(this);
+      }
+    });
   }
 
   private isActive() {
