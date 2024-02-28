@@ -40,18 +40,23 @@ export function useRtc(
     };
     rtc.addEventListener('signalingstatechange', onStateChange);
     return rtc.removeEventListener('signalingstatechange', onStateChange);
-  });
+  }, [conn]);
 
   // Connection state
   useEffect(() => {
     const onStateChange = () => {
       setConnState(rtc.connectionState);
+      setRtc((rtc) =>
+        rtc.connectionState === 'closed' || rtc.connectionState === 'failed'
+          ? createPeerConnection(conn.turnUser)
+          : rtc,
+      );
     };
     rtc.addEventListener('connectionstatechange', onStateChange);
     return () => {
       rtc.removeEventListener('connectionstatechange', onStateChange);
     };
-  }, [rtc, setConnState]);
+  }, [conn, rtc, setConnState]);
 
   // Receive remote audio
   useEffect(() => {
@@ -95,8 +100,9 @@ export function useRtc(
     (socketId: string, ice: any) => {
       if (conn.to.socketId !== socketId) return;
 
+      if (!rtc.remoteDescription) return; // could make sure we don't receive outdated ice candidates after page reload but doesn't matter that much
       try {
-        rtc.addIceCandidate(new RTCIceCandidate(ice)).catch(console.warn);
+        rtc.addIceCandidate(new RTCIceCandidate(ice)).catch(addError);
       } catch (e) {}
     },
     [rtc, conn],
