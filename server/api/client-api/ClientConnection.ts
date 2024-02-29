@@ -1,3 +1,4 @@
+import { AudioState, defaultAudioState } from '../../../shared/types/AudioState';
 import { RTCConnData } from '../../../shared/types/rtc';
 import { AuthedClient } from './AuthedClient';
 import { genTurnUser } from './turn-server';
@@ -12,8 +13,8 @@ export class ClientConnection {
   constructor(
     public client1: AuthedClient,
     public client2: AuthedClient,
-    public dstVolume1: number,
-    public dstVolume2: number,
+    public dstState1: AudioState | null,
+    public dstState2: AudioState | null,
   ) {
     this.connect();
   }
@@ -22,7 +23,7 @@ export class ClientConnection {
     return {
       polite,
       turnUser: genTurnUser(from.token.uuid),
-      volume: from === this.client1 ? this.dstVolume1 : this.dstVolume2,
+      audioState: (from === this.client1 ? this.dstState1 : this.dstState2) ?? defaultAudioState(),
       to: {
         player: to.getPlayerData(),
         socketId: to.getSocketId(),
@@ -47,31 +48,35 @@ export class ClientConnection {
     }
   }
 
-  updateVolume(client: AuthedClient, volume: number) {
+  private ensureClient(client: AuthedClient): boolean {
     if (![this.client1, this.client2].includes(client)) {
-      return console.error(
-        `Failed to update volume of client ${client.getSocketId()}. ` +
+      console.error(
+        `Failed to update audio state of client ${client.getSocketId()}. ` +
           `Only ${this.client1.getSocketId()} and ${this.client2.getSocketId()} ` +
           `are in this connection.`,
       );
+      return false;
     }
-
-    const isClient1 = client === this.client1;
-    if (volume === (isClient1 ? this.dstVolume1 : this.dstVolume2)) return;
-    if (isClient1) {
-      this.dstVolume1 = volume;
-    } else {
-      this.dstVolume2 = volume;
-    }
-    this.emitVolumeUpdate(client);
+    return true;
   }
 
-  emitVolumeUpdate(client: AuthedClient) {
+  updateAudioState(client: AuthedClient, audioState: AudioState | null) {
+    if (!this.ensureClient(client)) return;
+    if (client === this.client1) {
+      this.dstState1 = audioState;
+    } else {
+      this.dstState2 = audioState;
+    }
+    this.emitAudioStateUpdate(client);
+  }
+
+  emitAudioStateUpdate(client: AuthedClient) {
+    if (!this.ensureClient(client)) return;
     const otherClient = client === this.client1 ? this.client2 : this.client1;
     client.conn.socket.emit(
-      'rtc-update-vol',
+      'rtc-update-audio',
       otherClient.getSocketId(),
-      client === this.client1 ? this.dstVolume1 : this.dstVolume2,
+      (client === this.client1 ? this.dstState1 : this.dstState2) ?? defaultAudioState(),
     );
   }
 

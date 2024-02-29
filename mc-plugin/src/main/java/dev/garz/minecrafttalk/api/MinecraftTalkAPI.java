@@ -11,7 +11,6 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import dev.garz.minecrafttalk.MinecraftTalk;
@@ -104,7 +103,7 @@ public class MinecraftTalkAPI {
 
         Player player = pl.getServer().getPlayer(uuid);
         if (player != null) {
-          EmitBidirectionalVolumes(player);
+          EmitBidirectionalAudioUpdate(player);
         }
       } else {
         talkingPlayers.remove(uuid);
@@ -149,70 +148,75 @@ public class MinecraftTalkAPI {
 
   // TALK
 
-  void EmitBidirectionalVolumes(Player center) {
-    for (Player neighbor : MinecraftTalk.getInstance().getServer().getOnlinePlayers()) {
-      if (neighbor == center)
-        continue;
-      // todo: could optimize..
-      EmitVolumes(neighbor);
-    }
-    EmitVolumes(center);
+  public boolean isTalking(UUID uuid) {
+    return talkingPlayers.containsKey(uuid);
   }
 
-  void EmitVolumes(Player dst) {
+  void EmitBidirectionalAudioUpdate(Player center) {
+    for (Player neighbor : MinecraftTalk.getInstance().getServer().getOnlinePlayers()) {
+      EmitAudioUpdate(neighbor, center);
+    }
+    EmitAudioUpdate(center);
+  }
+
+  void EmitAudioUpdate(Player dst, Player src) {
     Bukkit.getScheduler().scheduleSyncDelayedTask(MinecraftTalk.getInstance(), () -> {
       if (!talkingPlayers.containsKey(dst.getUniqueId()))
         return;
       TalkingPlayer talkingDst = talkingPlayers.get(dst.getUniqueId());
 
-      // Volumes to nearby players
-      JSONObject volumes = new JSONObject();
+      JSONObject jsonConns = new JSONObject();
 
-      for (Player src : MinecraftTalk.getInstance().getServer().getOnlinePlayers()) {
-        if (dst == src)
-          continue;
-
-        if (!talkingPlayers.containsKey(src.getUniqueId()))
-          continue; // Ignore players, that aren't in the talk
-
-        double vol = volumeManager.calcVolume(dst, src);
-        if (vol <= 0)
-          continue; // Skip players that we can't hear
-
-        try {
-          volumes.put(src.getUniqueId().toString(), vol);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-
-        talkingDst.srcConns.put(src.getUniqueId(), src);
+      AudioState state = new AudioState(dst, src, this);
+      if (state.shouldPersist()) {
+        jsonConns.put(src.getUniqueId().toString(), state.encodeJSON());
+        talkingDst.srcConns.add(src.getUniqueId());
+      } else if (talkingDst.srcConns.contains(src.getUniqueId())) {
+        jsonConns.put(src.getUniqueId().toString(), JSONObject.NULL);
+        talkingDst.srcConns.remove(src.getUniqueId());
       }
 
-      // Emit volumes of 0 for players that got out of range
+      if (jsonConns.length() == 0)
+        return;
+      socket.emit("update-conns", dst.getUniqueId().toString(), jsonConns);
+    }, 0L);
+  }
+
+  void EmitAudioUpdate(Player dst) {
+    Bukkit.getScheduler().scheduleSyncDelayedTask(MinecraftTalk.getInstance(), () -> {
+      if (!talkingPlayers.containsKey(dst.getUniqueId()))
+        return;
+      TalkingPlayer talkingDst = talkingPlayers.get(dst.getUniqueId());
+
+      // Connection data to nearby players
+      JSONObject jsonConns = new JSONObject();
+
+      for (Player src : MinecraftTalk.getInstance().getServer().getOnlinePlayers()) {
+        AudioState state = new AudioState(dst, src, this);
+        if (!state.shouldPersist())
+          continue;
+
+        jsonConns.put(src.getUniqueId().toString(), state.encodeJSON());
+        talkingDst.srcConns.add(src.getUniqueId());
+      }
+
+      // Send null for players that got out of range
       Set<UUID> connsToRemove = new HashSet<>();
-      for (Player src : talkingDst.srcConns.values()) {
-        String connUuid = src.getUniqueId().toString();
-
-        if (!volumes.has(connUuid)) {
-          try {
-            volumes.put(connUuid, 0);
-          } catch (JSONException e) {
-            e.printStackTrace();
-          }
-
-          connsToRemove.add(src.getUniqueId());
+      for (UUID uuid : talkingDst.srcConns) {
+        String connUuid = uuid.toString();
+        if (!jsonConns.has(connUuid)) {
+          jsonConns.put(connUuid, JSONObject.NULL);
+          connsToRemove.add(uuid);
         }
       }
       for (UUID connUuid : connsToRemove) {
         talkingDst.srcConns.remove(connUuid);
       }
 
-      // We don't wanna keep emitting empty volume maps
-      int connCount = volumes.length();
-      if (connCount > 0 || talkingDst.lastConnCount > 0) {
-        socket.emit("update-vols", dst.getUniqueId().toString(), volumes);
-      }
-      talkingDst.lastConnCount = connCount;
+      // We don't wanna keep emitting empty objects
+      if (jsonConns.length() == 0)
+        return;
+      socket.emit("update-conns", dst.getUniqueId().toString(), jsonConns);
     }, 0L);
   }
 }

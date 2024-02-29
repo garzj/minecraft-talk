@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AudioState } from '../../shared/types/AudioState';
 import { RTCConnData } from '../../shared/types/rtc';
 import { socketEmit, useSocketLoader, useSocketOn } from '../bin/socket';
 import { ListPlayer } from './ListPlayer';
@@ -21,18 +22,18 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
   const [connState, setConnState] = useState<RTCPeerConnectionState>('new');
   useRtc(conn, remoteStream, setConnState);
 
-  // Receive volume updates
-  const [volume, setVolume] = useState(() => conn.volume);
+  // Receive audio state updates
+  const [audioState, setAudioState] = useState(() => conn.audioState);
 
-  const onUpdateVol = useCallback(
-    (socketId: string, volume: number) => {
+  const onAudioStateUpdate = useCallback(
+    (socketId: string, audioState: AudioState) => {
       if (conn.to.socketId !== socketId) return;
 
-      setVolume(volume);
+      setAudioState(audioState);
     },
     [conn],
   );
-  useSocketOn('rtc-update-vol', onUpdateVol);
+  useSocketOn('rtc-update-audio', onAudioStateUpdate);
 
   // Init conn
   useSocketLoader(
@@ -43,16 +44,16 @@ export const PlayerConn: React.FC<Props> = ({ conn }) => {
 
   useEffect(() => {
     if (!audio.current) return;
-    if (volume > 1) {
+    if (audioState.volume > 1) {
       audio.current.volume = 1;
       return;
     }
-    audio.current.volume = volume;
-  }, [volume]);
+    audio.current.volume = audioState.volume;
+  }, [audioState]);
 
   return (
     <>
-      <ListPlayer player={conn.to.player} volume={volume} connState={connState} />
+      <ListPlayer player={conn.to.player} volume={audioState.volume} connState={connState} />
       <audio autoPlay ref={audio}></audio>
     </>
   );

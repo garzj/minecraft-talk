@@ -1,12 +1,13 @@
 import { Socket } from 'socket.io';
 import { NestedMap } from '../../../shared/map/NestedMap';
+import { AudioState } from '../../../shared/types/AudioState';
 import { signObj } from '../../bin/sign-obj';
 import { Token } from '../../bin/token/Token';
 import { APIConn } from '../APIConn';
 import { APIManager } from '../APIManager';
 
 export class ServerConn extends APIConn {
-  playerVols: NestedMap<number> = new NestedMap();
+  playerVols: NestedMap<AudioState> = new NestedMap();
 
   constructor(apiMgr: APIManager, socket: Socket) {
     super(apiMgr, socket);
@@ -14,14 +15,14 @@ export class ServerConn extends APIConn {
     this.setupApi();
   }
 
-  private updateVolume(dst: string, src: string, volume: number) {
+  private updateAudioState(dst: string, src: string, audioState: AudioState | null) {
     if (!this.mgr.serverApi.talkingClients.has(dst)) return;
     if (!this.mgr.serverApi.talkingClients.has(src)) return;
 
-    if (volume === 0) {
+    if (audioState == null) {
       this.playerVols.unset(dst, src);
     } else {
-      this.playerVols.set(dst, src, volume);
+      this.playerVols.set(dst, src, audioState);
     }
 
     this.mgr.serverApi.updateVolume(dst, src);
@@ -58,17 +59,17 @@ export class ServerConn extends APIConn {
     });
 
     // Volume updates
-    this.socket.on('update-vols', (dst, volumes: { [src: string]: number }) => {
-      for (const [src, volume] of Object.entries(volumes)) {
-        this.updateVolume(dst, src, volume);
+    this.socket.on('update-conns', (dst, conns: { [src: string]: AudioState }) => {
+      for (const [src, audioState] of Object.entries(conns)) {
+        this.updateAudioState(dst, src, audioState);
       }
     });
   }
 
   onDisconnect() {
-    // Disconnect -> set all volumes to 0
+    // Disconnect -> clear all audio states
     this.playerVols.forEach((_, dst, src) => {
-      this.updateVolume(dst, src, 0);
+      this.updateAudioState(dst, src, null);
     });
   }
 }

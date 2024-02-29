@@ -61,7 +61,7 @@ export class AuthedClient {
     // Connection
     socket.on('init-conn', () => {
       for (const conn of this.mgr.serverApi.playerConns.getValues(this.token.uuid)) {
-        conn.emitVolumeUpdate(this);
+        conn.emitAudioStateUpdate(this);
       }
     });
   }

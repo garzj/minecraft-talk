@@ -1,4 +1,5 @@
 import { RelationMap } from '../../../shared/map/RelationMap';
+import { AudioState } from '../../../shared/types/AudioState';
 import { API } from '../API';
 import { APIManager } from '../APIManager';
 import { AuthedClient } from '../client-api/AuthedClient';
@@ -43,35 +44,69 @@ export class ServerAPI extends API<ServerConn> {
     });
   }
 
-  updateVolume(dst: string, src: string) {
-    // Get loudest volume (of all servers that have these players connected)
+  private getMergedAudioState(dst: string, src: string): AudioState | null {
+    // Get loudest volume and merge origins (of all servers that have these players connected)
+    let count = 0;
+
     let volume = 0;
+
+    let originCount = 0;
+    let originSum: [number, number, number] = [0, 0, 0];
+
     for (const server of this.apiConns) {
-      const serverVolume = server.playerVols.get(dst, src);
-      if (serverVolume !== undefined && serverVolume > volume) {
-        volume = serverVolume;
+      const audioData = server.playerVols.get(dst, src);
+      if (!audioData) continue;
+
+      count++;
+
+      if (audioData.volume > volume) {
+        volume = audioData.volume;
+      }
+
+      if (audioData.volume != 0 && audioData.origin) {
+        originCount++;
+        const connOrigin = audioData.origin;
+        originSum = originSum.map((v, i) => v + connOrigin[i] * audioData.volume) as [number, number, number];
       }
     }
+
+    if (count == 0) return null;
+
+    let origin: AudioState['origin'] = undefined;
+    if (originCount > 0) {
+      // normalize
+      const mag = Math.sqrt(originSum[0] ** 2 + originSum[1] ** 2 + originSum[2] ** 2);
+      origin = originSum.map((v) => v / mag) as [number, number, number];
+    }
+
+    return {
+      volume,
+      origin,
+    };
+  }
+
+  updateVolume(dst: string, src: string) {
+    const audioState = this.getMergedAudioState(dst, src);
 
     // Update player connections
     const playerConn = this.playerConns.get(dst, src);
     const dstClient = this.talkingClients.get(dst);
     const srcClient = this.talkingClients.get(src);
 
-    const allZero =
-      volume === 0 &&
+    const allNull =
+      audioState === null &&
       (!playerConn ||
-        (playerConn.client1.getPlayerData().uuid === dst ? playerConn.dstVolume2 : playerConn.dstVolume1) === 0);
-    if (!dstClient || !srcClient || allZero) {
+        (playerConn.client1.getPlayerData().uuid === dst ? playerConn.dstState2 : playerConn.dstState1) === null);
+    if (!dstClient || !srcClient || allNull) {
       playerConn?.destroy();
       this.playerConns.unset(dst, src);
       return;
     }
 
     if (!playerConn) {
-      this.playerConns.set(dst, src, new ClientConnection(dstClient, srcClient, volume, 0));
+      this.playerConns.set(dst, src, new ClientConnection(dstClient, srcClient, audioState, null));
     } else {
-      playerConn.updateVolume(dstClient, volume);
+      playerConn.updateAudioState(dstClient, audioState);
     }
   }
 }

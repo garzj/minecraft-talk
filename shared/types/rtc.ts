@@ -1,3 +1,4 @@
+import { AudioState } from './AudioState';
 import { PlayerData } from './PlayerData';
 
 export interface TurnUserData {
@@ -8,7 +9,7 @@ export interface TurnUserData {
 export interface RTCConnData {
   polite: boolean;
   turnUser: TurnUserData;
-  volume: number;
+  audioState: AudioState;
   to: {
     player: PlayerData;
     socketId: string;
