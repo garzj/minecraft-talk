@@ -6,7 +6,7 @@ export interface TurnUserData {
 }
 
 export interface RTCConnData {
-  initiator: boolean;
+  polite: boolean;
   turnUser: TurnUserData;
   volume: number;
   to: {

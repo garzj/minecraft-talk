@@ -18,9 +18,9 @@ export class ClientConnection {
     this.connect();
   }
 
-  private getRTCConnData(from: AuthedClient, to: AuthedClient, initiator: boolean): RTCConnData {
+  private getRTCConnData(from: AuthedClient, to: AuthedClient, polite: boolean): RTCConnData {
     return {
-      initiator,
+      polite,
       turnUser: genTurnUser(from.token.uuid),
       volume: from === this.client1 ? this.dstVolume1 : this.dstVolume2,
       to: {

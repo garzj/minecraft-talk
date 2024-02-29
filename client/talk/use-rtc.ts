@@ -1,10 +1,13 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
 import { RTCConnData } from '../../shared/types/rtc';
-import { useSocketOn } from '../bin/socket';
+import { socketEmit, useSocketOn } from '../bin/socket';
+import { useAudioStream } from '../context/usermedia/audio-stream';
 import { createPeerConnection } from './create-peer-conn';
 
-import { socketEmit } from '../bin/socket';
-import { useAudioStream } from '../context/audio';
+function applySdpSettings(sdp: RTCSessionDescriptionInit) {
+  sdp.sdp = sdp.sdp?.replace('useinbandfec=1', 'useinbandfec=1; maxaveragebitrate=510000');
+  return sdp;
+}
 
 export function useRtc(
   conn: RTCConnData,
@@ -28,58 +31,35 @@ export function useRtc(
   // RTC Connection
   const [rtc, setRtc] = useState(() => createPeerConnection(conn.turnUser));
   useEffect(() => {
-    setRtc((rtc) => (rtc.signalingState === 'closed' ? createPeerConnection(conn.turnUser) : rtc));
+    setRtc((rtc) => (rtc.connectionState === 'closed' ? createPeerConnection(conn.turnUser) : rtc));
     return () => rtc.close();
-  }, [conn]);
-  useEffect(() => {
-    const onStateChange = () => {
-      if (rtc.signalingState === 'closed') {
-        setRtc((rtc) => (rtc.signalingState === 'closed' ? createPeerConnection(conn.turnUser) : rtc));
-      }
-    };
-    rtc.addEventListener('signalingstatechange', onStateChange);
-    return rtc.removeEventListener('signalingstatechange', onStateChange);
-  }, [conn]);
+  }, []);
 
-  // Connection state
+  // Connection state (create new on failure)
   useEffect(() => {
     const onStateChange = () => {
       setConnState(rtc.connectionState);
-      setRtc((rtc) =>
-        rtc.connectionState === 'closed' || rtc.connectionState === 'failed'
-          ? createPeerConnection(conn.turnUser)
-          : rtc,
-      );
+      setRtc((rtc) => (rtc.connectionState === 'failed' ? createPeerConnection(conn.turnUser) : rtc));
     };
     rtc.addEventListener('connectionstatechange', onStateChange);
-    return () => {
-      rtc.removeEventListener('connectionstatechange', onStateChange);
-    };
+    return () => rtc.removeEventListener('connectionstatechange', onStateChange);
   }, [conn, rtc, setConnState]);
 
   // Receive remote audio
   useEffect(() => {
-    rtc.ontrack = (e) => {
-      remoteStream.addTrack(e.track);
-    };
+    const onTrack = (e: RTCTrackEvent) => remoteStream.addTrack(e.track);
+    rtc.addEventListener('track', onTrack);
+    return () => rtc.removeEventListener('track', onTrack);
   }, [rtc]);
 
-  // Send local audio (when stable)
+  // Send local audio (initiates negotiationneeded if the tracks change)
   const stream = useAudioStream();
   useEffect(() => {
-    const onStateChange = () => {
-      if (rtc.signalingState !== 'stable') return;
-      rtc.removeEventListener('signalingstatechange', onStateChange);
-
-      for (const track of stream?.getAudioTracks() ?? []) {
-        rtc.addTrack(track);
-      }
-    };
-    rtc.addEventListener('signalingstatechange', onStateChange);
-    onStateChange();
+    if (rtc.signalingState !== 'stable') return;
+    for (const track of stream?.getAudioTracks() ?? []) {
+      rtc.addTrack(track);
+    }
     return () => {
-      rtc.removeEventListener('signalingstatechange', onStateChange);
-
       if (rtc.connectionState === 'closed') return;
       for (const sender of rtc.getSenders()) {
         rtc.removeTrack(sender);
@@ -87,99 +67,103 @@ export function useRtc(
     };
   }, [stream, rtc]);
 
+  // Negotiation stuff
+  const makingOffer = useRef(false);
+  const ignoreOffer = useRef(false);
+  useEffect(() => {
+    const onStateChange = () => {
+      if (rtc.connectionState !== 'new') return;
+      makingOffer.current = false;
+      ignoreOffer.current = false;
+    };
+    onStateChange();
+    return () => rtc.removeEventListener('connectionstatechange', onStateChange);
+  }, [rtc]);
+
   // Emit ICE candidates
   useEffect(() => {
-    rtc.onicecandidate = (e) => {
-      socketEmit('rtc-ice', conn.to.socketId, e.candidate);
-    };
+    const onIce = (e: RTCPeerConnectionIceEvent) => e.candidate && socketEmit('rtc-ice', conn.to.socketId, e.candidate);
+    rtc.addEventListener('icecandidate', onIce);
+    return () => rtc.removeEventListener('icecandidate', onIce);
   }, [rtc, conn]);
 
   // Receive ICE candidates
   const onIceCand = useCallback(
-    (socketId: string, ice: any) => {
+    async (socketId: string, ice: any) => {
       if (conn.to.socketId !== socketId) return;
 
       if (!rtc.remoteDescription) return; // could make sure we don't receive outdated ice candidates after page reload but doesn't matter that much
+
       try {
-        rtc.addIceCandidate(new RTCIceCandidate(ice)).catch(logError);
-      } catch (e) {}
+        await rtc.addIceCandidate(new RTCIceCandidate(ice));
+      } catch (e) {
+        if (!ignoreOffer.current) return logError(e);
+      }
     },
-    [rtc, conn],
+    [rtc, conn, logError],
   );
   useSocketOn('rtc-ice', onIceCand);
 
-  // Apply and send created local descs
-  const createdDesc = useCallback(
-    (sdp: RTCSessionDescriptionInit) => {
-      // Add some quality settings
-      sdp.sdp = sdp.sdp?.replace('useinbandfec=1', 'useinbandfec=1; stereo=1; maxaveragebitrate=510000');
-
-      rtc
-        .setLocalDescription(sdp)
-        .then(() => {
-          socketEmit('rtc-desc', conn.to.socketId, rtc.localDescription);
-        })
-        .catch(logError);
-    },
-    [rtc, conn],
-  );
-
-  // Receive and apply remote descs
-  const onRtcDesc = useCallback(
-    (socketId: string, sdp: any) => {
-      if (conn.to.socketId !== socketId) return;
-
-      try {
-        rtc.setRemoteDescription(new RTCSessionDescription(sdp)).catch(logError);
-      } catch (e) {
-        logError(e);
-        return;
-      }
-
-      // Answer if its an offer
-      if (sdp?.type === 'offer') {
-        rtc
-          .createAnswer({
-            voiceActivityDetection: true,
-          })
-          .then(createdDesc)
-          .catch(logError);
-      }
-    },
-    [rtc, conn, createdDesc],
-  );
-  useSocketOn('rtc-desc', onRtcDesc);
-
-  // Send offers if initiator (when stable)
+  // ICE failures
   useEffect(() => {
-    const onStateChange = () => {
-      if (rtc.signalingState !== 'stable') return;
-      rtc.removeEventListener('signalingstatechange', onStateChange);
-
-      if (conn.initiator) {
-        const sendOffer = () => {
-          rtc
-            .createOffer({
-              offerToReceiveAudio: true,
-            })
-            .then(createdDesc)
-            .catch(logError);
-        };
-
-        let negotiating = true;
-        rtc.onnegotiationneeded = () => {
-          if (negotiating) return;
-          negotiating = true;
-
-          sendOffer();
-        };
-        rtc.onconnectionstatechange = () => (negotiating = rtc.connectionState !== 'connected');
-
-        sendOffer();
+    const onIceStateChange = () => {
+      if (rtc.iceConnectionState === 'failed') {
+        rtc.restartIce();
       }
     };
-    rtc.addEventListener('signalingstatechange', onStateChange);
-    onStateChange();
-    return () => rtc.removeEventListener('signalingstatechange', onStateChange);
-  }, [rtc, conn, createdDesc]);
+    return () => rtc.removeEventListener('iceconnectionstatechange', onIceStateChange);
+  }, [rtc]);
+
+  // Send offer on negotiation
+  useEffect(() => {
+    const onNegotiationNeeded = async () => {
+      try {
+        makingOffer.current = true;
+        const offer = applySdpSettings(
+          await rtc.createOffer({
+            voiceActivityDetection: true,
+          }),
+        );
+        if (rtc.signalingState !== 'stable') return;
+        await rtc.setLocalDescription(offer);
+        socketEmit('rtc-desc', conn.to.socketId, rtc.localDescription);
+      } catch (e) {
+        return logError(e);
+      } finally {
+        makingOffer.current = false;
+      }
+    };
+    rtc.addEventListener('negotiationneeded', onNegotiationNeeded);
+    return () => rtc.removeEventListener('negotiationneeded', onNegotiationNeeded);
+  }, [rtc, conn, logError]);
+
+  // Receive and apply remote descs
+  const onRemoteDesc = useCallback(
+    async (socketId: string, _sdp: any) => {
+      if (conn.to.socketId !== socketId) return;
+      try {
+        const sdp = new RTCSessionDescription(_sdp);
+
+        const offerCollision = sdp.type === 'offer' && (makingOffer || rtc.signalingState !== 'stable');
+        ignoreOffer.current = !!(!conn.polite && offerCollision);
+        if (ignoreOffer.current) return;
+
+        await rtc.setRemoteDescription(sdp);
+        if (sdp.type === 'offer') {
+          const answer = applySdpSettings(
+            await rtc.createAnswer({
+              voiceActivityDetection: true,
+            }),
+          );
+          if (rtc.signalingState === 'stable') return;
+          await rtc.setLocalDescription(answer);
+          socketEmit('rtc-desc', conn.to.socketId, rtc.localDescription);
+        }
+      } catch (e) {
+        return logError(e);
+      }
+    },
+    [rtc, conn, logError, makingOffer],
+  );
+  useSocketOn('rtc-desc', onRemoteDesc);
 }
