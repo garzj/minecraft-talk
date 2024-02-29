@@ -12,20 +12,15 @@ export function useRtc(
   setConnState: Dispatch<SetStateAction<RTCPeerConnectionState>>,
 ) {
   // Error handling
-  const [errors, setErrors] = useState<unknown[]>([]);
-  const addError = useCallback((err: unknown) => {
-    setErrors((errs) => [...errs, err]);
-  }, []);
-  useEffect(() => {
-    if (errors.length > 0) {
-      console.warn(`RTC to ${conn.to.player.uuid} failed. Error list:`, errors);
-
-      socketEmit('rtc-err', conn.to.socketId, errors.length);
-    }
-  }, [errors, conn]);
+  const logError = useCallback(
+    (err: unknown) => {
+      console.warn(err);
+      socketEmit('rtc-err');
+    },
+    [socketEmit],
+  );
   const onRtcErr = useCallback(
-    (socketId: string, count: unknown) =>
-      socketId === conn.to.socketId && console.warn(`The other client errored. (${count})`),
+    (socketId: string) => socketId === conn.to.socketId && console.warn(`The other client errored.`),
     [conn],
   );
   useSocketOn('rtc-err', onRtcErr);
@@ -106,7 +101,7 @@ export function useRtc(
 
       if (!rtc.remoteDescription) return; // could make sure we don't receive outdated ice candidates after page reload but doesn't matter that much
       try {
-        rtc.addIceCandidate(new RTCIceCandidate(ice)).catch(addError);
+        rtc.addIceCandidate(new RTCIceCandidate(ice)).catch(logError);
       } catch (e) {}
     },
     [rtc, conn],
@@ -124,7 +119,7 @@ export function useRtc(
         .then(() => {
           socketEmit('rtc-desc', conn.to.socketId, rtc.localDescription);
         })
-        .catch(addError);
+        .catch(logError);
     },
     [rtc, conn],
   );
@@ -135,9 +130,9 @@ export function useRtc(
       if (conn.to.socketId !== socketId) return;
 
       try {
-        rtc.setRemoteDescription(new RTCSessionDescription(sdp)).catch(addError);
+        rtc.setRemoteDescription(new RTCSessionDescription(sdp)).catch(logError);
       } catch (e) {
-        addError(e);
+        logError(e);
         return;
       }
 
@@ -148,7 +143,7 @@ export function useRtc(
             voiceActivityDetection: true,
           })
           .then(createdDesc)
-          .catch(addError);
+          .catch(logError);
       }
     },
     [rtc, conn, createdDesc],
@@ -168,7 +163,7 @@ export function useRtc(
               offerToReceiveAudio: true,
             })
             .then(createdDesc)
-            .catch(addError);
+            .catch(logError);
         };
 
         let negotiating = true;
