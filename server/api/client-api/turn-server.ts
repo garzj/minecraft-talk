@@ -6,6 +6,8 @@ const turnCreds: Map<string, string> = new Map();
 const turnServer = new Turn({
   debugLevel: 'ERROR',
   authMech: 'long-term',
+  listeningPort: parseInt(process.env.TURN_LISTEN_PORT),
+  listeningIps: [process.env.TURN_LISTEN_ADDR],
 });
 turnServer.start();
 

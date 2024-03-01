@@ -14,7 +14,7 @@ export class Web {
   }
 
   start() {
-    const port = process.env.PORT;
-    this.server.listen(port, () => console.log(`Listening on port ${port}.`));
+    const port = parseInt(process.env.LISTEN_PORT);
+    this.server.listen(port, process.env.LISTEN_ADDR, () => console.log(`Listening on port ${port}.`));
   }
 }

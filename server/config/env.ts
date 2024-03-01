@@ -6,7 +6,10 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: 'development' | 'production' | 'test';
-      PORT: string;
+      LISTEN_ADDR: string;
+      LISTEN_PORT: string;
+      TURN_LISTEN_ADDR: string;
+      TURN_LISTEN_PORT: string;
       ORIGIN: string;
       CONVERSATION_SECRET: string;
       TOKEN_SECRET: string;
@@ -15,7 +18,10 @@ declare global {
 }
 
 process.env.NODE_ENV ??= 'production';
-process.env.PORT ??= '8080';
+process.env.LISTEN_ADDR ??= '0.0.0.0';
+process.env.LISTEN_PORT ??= '8080';
+process.env.TURN_LISTEN_ADDR ??= '0.0.0.0';
+process.env.TURN_LISTEN_PORT ??= '3478';
 
 const errs: string[] = [];
 if (process.env.NODE_ENV === 'production') {
