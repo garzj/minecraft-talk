@@ -1,8 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useSocketInit } from './bin/socket';
-import { ProvideAudio } from './context/audio';
 import { ProvideAuth } from './context/auth';
+import { ProvideUserMedia } from './context/usermedia/ProvideUserMedia';
 import { ErrorAlert } from './pages/error/ErrorAlert';
 import { SocketError } from './pages/error/SocketError';
 
@@ -25,9 +25,9 @@ export const App: React.FC = () => {
               path='/'
               element={
                 <ProvideAuth>
-                  <ProvideAudio>
+                  <ProvideUserMedia>
                     <Talk></Talk>
-                  </ProvideAudio>
+                  </ProvideUserMedia>
                 </ProvideAuth>
               }
             />

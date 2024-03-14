@@ -1,15 +1,17 @@
 /// <reference types="webrtc" />
 
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { useErrorAlert } from '../pages/error/ErrorAlert';
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import { useErrorAlert } from '../../pages/error/ErrorAlert';
 
-const audioContext = createContext<MediaStream | null>(null);
+export const audioContext = createContext<MediaStream | null>(null);
+
+export const useAudioStream = () => useContext(audioContext);
 
 interface Props {
   children?: ReactNode;
 }
 
-export const ProvideAudio: React.FC<Props> = ({ children }) => {
+export const ProvideAudioStream: React.FC<Props> = ({ children }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   const [addMicError, removeMicError] = useErrorAlert({
@@ -82,5 +84,3 @@ export const ProvideAudio: React.FC<Props> = ({ children }) => {
 
   return <audioContext.Provider value={stream}>{children}</audioContext.Provider>;
 };
-
-export const useAudioStream = () => useContext(audioContext);

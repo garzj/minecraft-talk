@@ -7,7 +7,7 @@ type ErrorAlertData = {
   loadingIcon?: boolean;
   btn?: {
     msg: string;
-    onClick: () => void;
+    onClick?: () => void;
   };
 };
 
